@@ -49,6 +49,14 @@ class CartEntryDetailRESTView(APIView):
         serializer = CartEntrySerializer(entry)
         return Response(serializer.data)
 
+    def delete(self, request, pk, format=None):
+        cart = Cart(request.cart)
+        CartEntrySerializer.cart = cart
+ 
+        product = Product.objects.get(pk=pk)
+        cart.remove(product)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CartEntryListRESTView(APIView):
     permission_classes = (permissions.AllowAny,)

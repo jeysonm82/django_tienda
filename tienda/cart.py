@@ -43,8 +43,8 @@ class Cart(object):
     def remove(self, product):
         if product in self.storage:
             del self.storage[product]
-
-        if self.session_storage is not None and product.pk in self.session_storage:
+        
+        if self.session_storage is not None and u"%s"%(product.pk) in self.session_storage:
             del self.session_storage[u"%s"%(product.pk)]
 
     def to_session_storage(self):
