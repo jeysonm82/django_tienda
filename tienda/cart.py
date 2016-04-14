@@ -72,3 +72,8 @@ class CartMiddleware(object):
         if hasattr(request, 'cart'):
             request.session[SESSION_KEY] = request.cart
         return response
+
+    def process_template_response(self, request, response):
+        if response.context_data is not None and hasattr(request, 'cart'):
+            response.context_data['total_cart_entries'] = sum([int(x) for k,x in request.cart.iteritems()])
+        return response
