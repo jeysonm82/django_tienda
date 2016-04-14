@@ -7,8 +7,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
 
-CartEntry = namedtuple('CartEntry', ['product_pk', 'quantity'])
+#CartEntry = namedtuple('CartEntry', ['product_pk', 'quantity'])
 
+class CartEntry(object):
+    def __init__(self, product_pk, quantity):
+        self.product_pk = product_pk
+        self.quantity = quantity
 
 class CartEntrySerializer(serializers.Serializer):
     product_pk = serializers.CharField() 
@@ -27,14 +31,10 @@ class CartEntrySerializer(serializers.Serializer):
             return CartEntry(prod.pk, self.cart.storage[prod])
         
     def update(self, instance, validated_data):
-        try:
-            prod = Product.objects.get(pk=self.validated_data.get('product_pk'))
-            qty = self.validated_data.get('quantity')
-        except Exception as e:
-            print "error", e
-        else:
-            self.cart.update(prod, qty)
-            return CartEntry(prod.pk, qty)
+        qty = self.validated_data.get('quantity')
+        self.cart.update(Product.objects.get(pk=instance.product_pk), qty)
+        instance.quantity = qty
+        return instance
 
 
 class CartEntryDetailRESTView(APIView):
@@ -58,6 +58,20 @@ class CartEntryDetailRESTView(APIView):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def put(self, request, pk, format=None):
+        cart = Cart(request.cart)
+        CartEntrySerializer.cart = cart
+
+        product = Product.objects.get(pk=pk)
+        entry  = CartEntry(pk, cart.storage[product])
+        serializer = CartEntrySerializer(entry, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class CartEntryListRESTView(APIView):
     permission_classes = (permissions.AllowAny,)
 
