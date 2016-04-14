@@ -1,0 +1,11 @@
+*.pyc
+*.swp
+*.py~
+*.zip
+*.rar
+*.html~
+*.htm~
+*.css~
+.idea
+db.sqlite3
+!.gitignore
