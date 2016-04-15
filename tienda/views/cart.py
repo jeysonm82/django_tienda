@@ -10,17 +10,19 @@ from rest_framework import permissions
 #CartEntry = namedtuple('CartEntry', ['product_pk', 'quantity'])
 
 class CartEntry(object):
-    def __init__(self, product_pk, quantity, name, price):
+    def __init__(self, product_pk, quantity, name, price, category_pk):
         self.product_pk = product_pk
         self.quantity = quantity
         self.name = name
         self.price = price
+        self.category_pk = category_pk
 
 class CartEntrySerializer(serializers.Serializer):
     product_pk = serializers.CharField() 
     quantity = serializers.IntegerField()
     name = serializers.CharField(read_only=True) 
     price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    category_pk = serializers.IntegerField(read_only=True) 
 
     cart = None
 
@@ -32,7 +34,7 @@ class CartEntrySerializer(serializers.Serializer):
             print "error", e
         else:
             self.cart.add(prod, qty)
-            return CartEntry(prod.pk, self.cart.storage[prod], prod.name, prod.price)
+            return CartEntry(prod.pk, self.cart.storage[prod], prod.name, prod.price, prod.get_first_category().pk)
         
     def update(self, instance, validated_data):
         qty = self.validated_data.get('quantity')
@@ -49,7 +51,7 @@ class CartEntryDetailRESTView(APIView):
         CartEntrySerializer.cart = cart
 
         product = Product.objects.get(pk=pk)
-        entry  = CartEntry(pk, cart.storage[product], product.name, product.price)
+        entry  = CartEntry(pk, cart.storage[product], product.name, product.price, product.get_first_category().pk)
         serializer = CartEntrySerializer(entry)
         return Response(serializer.data)
 
@@ -68,7 +70,7 @@ class CartEntryDetailRESTView(APIView):
         CartEntrySerializer.cart = cart
 
         product = Product.objects.get(pk=pk)
-        entry  = CartEntry(pk, cart.storage[product], product.name, product.price)
+        entry  = CartEntry(pk, cart.storage[product], product.name, product.price, product.get_first_category().pk)
         serializer = CartEntrySerializer(entry, data=request.data)
 
         if serializer.is_valid():
@@ -88,7 +90,7 @@ class CartEntryListRESTView(APIView):
     def _get_entire_cart(self, cart):     
         entries = []
         for p, q in cart.storage.iteritems():
-            entries.append(CartEntry(p.pk, q, p.name, p.price))
+            entries.append(CartEntry(p.pk, q, p.name, p.price, p.get_first_category().pk))
         serializer = CartEntrySerializer(entries, many=True)
 
         return serializer
