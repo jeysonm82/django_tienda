@@ -43,7 +43,17 @@ class CartEntrySerializer(serializers.Serializer):
         return instance
 
 
-class CartEntryDetailRESTView(APIView):
+class CartRESTView(APIView):
+
+    def _get_entire_cart(self, cart):     
+        entries = []
+        for p, q in cart.storage.iteritems():
+            entries.append(CartEntry(p.pk, q, p.name, p.price, p.get_first_category().pk))
+        serializer = CartEntrySerializer(entries, many=True)
+
+        return serializer
+
+class CartEntryDetailRESTView(CartRESTView):
     permission_classes = (permissions.AllowAny,)
     
     def get(self, request, pk, format=None):
@@ -62,7 +72,8 @@ class CartEntryDetailRESTView(APIView):
         product = Product.objects.get(pk=pk)
         cart.remove(product)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        #return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(self._get_entire_cart(cart).data)
 
 
     def put(self, request, pk, format=None):
@@ -75,11 +86,11 @@ class CartEntryDetailRESTView(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(self._get_entire_cart(cart).data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class CartEntryListRESTView(APIView):
+class CartEntryListRESTView(CartRESTView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
@@ -87,13 +98,7 @@ class CartEntryListRESTView(APIView):
         CartEntrySerializer.cart = cart
         return Response(self._get_entire_cart(cart).data)
 
-    def _get_entire_cart(self, cart):     
-        entries = []
-        for p, q in cart.storage.iteritems():
-            entries.append(CartEntry(p.pk, q, p.name, p.price, p.get_first_category().pk))
-        serializer = CartEntrySerializer(entries, many=True)
 
-        return serializer
 
     def post(self, request, format=None):
         cart = Cart(request.cart)
