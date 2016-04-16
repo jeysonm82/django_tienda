@@ -10,12 +10,16 @@ from rest_framework import permissions
 #CartEntry = namedtuple('CartEntry', ['product_pk', 'quantity'])
 
 class CartEntry(object):
-    def __init__(self, product_pk, quantity, name, price, category_pk):
+    def __init__(self, product_pk, quantity, name, price, category_pk, image):
         self.product_pk = product_pk
         self.quantity = quantity
         self.name = name
         self.price = price
         self.category_pk = category_pk
+        if image is not None:
+            self.image = image.image.thumbnail['200x150'].url
+        else:
+            self.image = None
 
 class CartEntrySerializer(serializers.Serializer):
     product_pk = serializers.CharField() 
@@ -23,6 +27,7 @@ class CartEntrySerializer(serializers.Serializer):
     name = serializers.CharField(read_only=True) 
     price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     category_pk = serializers.IntegerField(read_only=True) 
+    image = serializers.CharField(read_only=True) 
 
     cart = None
 
@@ -48,7 +53,7 @@ class CartRESTView(APIView):
     def _get_entire_cart(self, cart):     
         entries = []
         for p, q in cart.storage.iteritems():
-            entries.append(CartEntry(p.pk, q, p.name, p.price, p.get_first_category().pk))
+            entries.append(CartEntry(p.pk, q, p.name, p.price, p.get_first_category().pk, p.images.first()))
         serializer = CartEntrySerializer(entries, many=True)
 
         return serializer
@@ -61,7 +66,7 @@ class CartEntryDetailRESTView(CartRESTView):
         CartEntrySerializer.cart = cart
 
         product = Product.objects.get(pk=pk)
-        entry  = CartEntry(pk, cart.storage[product], product.name, product.price, product.get_first_category().pk)
+        entry  = CartEntry(pk, cart.storage[product], product.name, product.price, product.get_first_category().pk, product.images.first())
         serializer = CartEntrySerializer(entry)
         return Response(serializer.data)
 
@@ -81,7 +86,7 @@ class CartEntryDetailRESTView(CartRESTView):
         CartEntrySerializer.cart = cart
 
         product = Product.objects.get(pk=pk)
-        entry  = CartEntry(pk, cart.storage[product], product.name, product.price, product.get_first_category().pk)
+        entry  = CartEntry(pk, cart.storage[product], product.name, product.price, product.get_first_category().pk, product.images.first())
         serializer = CartEntrySerializer(entry, data=request.data)
 
         if serializer.is_valid():

@@ -75,6 +75,9 @@ class Product(models.Model):
         return hash((self.pk, self.name))
 
     def __eq__(self, other):
+        if not isinstance(other, Product):
+            return False
+        
         return (self.pk, self.name) == (other.pk, other.name)
 
     def get_price(self):
