@@ -39,7 +39,7 @@ class CartEntrySerializer(serializers.Serializer):
             print "error", e
         else:
             self.cart.add(prod, qty)
-            return CartEntry(prod.pk, self.cart.storage[prod], prod.name, prod.price, prod.get_first_category().pk)
+            return CartEntry(prod.pk, self.cart.storage[prod], prod.name, prod.price, prod.get_first_category().pk, prod.images.first())
         
     def update(self, instance, validated_data):
         qty = self.validated_data.get('quantity')
