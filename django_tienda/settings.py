@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'mptt',
     'rest_framework', 
     'versatileimagefield',
+    'haystack',
     'tienda',
 ]
 
@@ -133,3 +134,15 @@ REST_FRAMEWORK = {
     ]
 }
 PRODUCTS_PER_PAGE = 20
+
+#Search engine
+#pip install django_haystack (use the one below)
+#pip install git+ssh://git@github.com/django-haystack/django-haystack.git@f1ed18313777005dd77ed724ecbfb27c0b03cad8
+#pip install whoosh
+import os
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+    },
+}

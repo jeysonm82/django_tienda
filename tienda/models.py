@@ -119,5 +119,3 @@ class CategoryImage(models.Model):
         upload_to='categories', ppoi_field='ppoi', blank=False)
     ppoi = PPOIField()
     alt = models.CharField('short description', max_length=128, blank=True)
-
-
