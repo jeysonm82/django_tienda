@@ -28,7 +28,8 @@ class Category(MPTTModel):
         return self.name
 
     class Meta:
-        verbose_name_plural = 'categories'
+        verbose_name = 'categoria'
+        verbose_name_plural = 'categorias'
 
 
 class ProductManager(models.Manager):
@@ -85,6 +86,10 @@ class Product(models.Model):
 
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
+    
+    class Meta:
+        verbose_name = 'producto'
+        verbose_name_plural = 'productos'
 
 class ProductVariant(models.Model):
     name = models.CharField('name', max_length=128)
@@ -103,6 +108,10 @@ class ProductImage(models.Model):
 
     ppoi = PPOIField()
     alt = models.CharField('short description', max_length=128, blank=True)
+
+    class Meta:
+        verbose_name = 'imagen de producto'
+        verbose_name_plural = 'imagenes de producto'
 
 class CategoryImage(models.Model):
     category = models.ForeignKey(Category, related_name='images')
