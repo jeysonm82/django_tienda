@@ -17,9 +17,10 @@ class CatalogView(ListView):
             self.category = get_object_or_404(Category, pk=self.kwargs['cat_id'])
         # Queryset overriding
         if self.category is None:
-            if 's' in self.request.GET:
+
+            if 'search' in self.request.GET:
                 # If 's' in GET then use search manager
-                content = self.request.GET.get('s')
+                content = self.request.GET.get('search')
                 queryset = Product.search.filter(content=content, enabled=True)
             else:
                 queryset = Product.objects.filter(enabled=True) # TODO que productoss obtener por defecto?
