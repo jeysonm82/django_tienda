@@ -4,8 +4,8 @@ from tienda.models import Product
 
 class ProductIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
+    enabled = indexes.BooleanField(model_attr='enabled')
     #categories = indexes.CharField(model_attr='categories')
-    #enabled = indexes.DateTimeField(model_attr='enabled')
 
     def get_model(self):
         return Product

@@ -10,6 +10,7 @@ from django_prices.models import PriceField
 from versatileimagefield.fields import VersatileImageField, PPOIField
 from unidecode import unidecode
 from django.utils.text import slugify
+from haystack.query import SearchQuerySet
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -54,6 +55,23 @@ class ProductManager(models.Manager):
         pass
 
 
+class ProductSearchManager(models.Manager):
+    """ Product manager using django haystack queryset for search"""
+    haystack_qset = SearchQuerySet().all()
+
+    def get_queryset(self):
+        return self.haystack_qset
+    
+    def all(self):
+        return self._get_django_qset(self.get_queryset())
+
+    def filter(self, **kwargs):
+        return self._get_django_qset(self.get_queryset().filter(**kwargs))
+
+    def _get_django_qset(self, hay_qset):
+        pks = [x.object.pk for x in hay_qset]
+        return Product.objects.filter(pk__in=pks)
+
 class Product(models.Model):
     name = models.CharField('name', max_length=128)
     description = models.TextField('description', blank=True, default='')
@@ -65,6 +83,7 @@ class Product(models.Model):
     enabled = models.BooleanField('enabled', default=True)
 
     objects = ProductManager()
+    search = ProductSearchManager()
 
     def __str__(self):
         return self.name
