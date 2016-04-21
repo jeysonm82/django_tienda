@@ -9,3 +9,4 @@
 .idea
 db.sqlite3
 !.gitignore
+whoosh_index
