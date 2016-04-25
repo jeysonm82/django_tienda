@@ -12,6 +12,7 @@ from versatileimagefield.fields import VersatileImageField, PPOIField
 from unidecode import unidecode
 from django.utils.text import slugify
 from haystack.query import SearchQuerySet
+from django.db.models import Q
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -161,7 +162,7 @@ class RuleBasedDiscount(models.Model):
     discount = models.IntegerField("Descuento")
     """Valor nominal del descuento"""
     discount_unit = models.SmallIntegerField(
-        "Unidad de descuento", default=1, choices=((1, 'Valor fijo'), (2, 'Porcentaje')))
+        "Unidad de descuento", default=2, choices=((1, 'Valor fijo'), (2, 'Porcentaje')))
     """Unidad del descuento (valor fijo o porcentaje)"""
 
     activated_by_coupon = models.BooleanField(
@@ -219,17 +220,11 @@ class CatalogDiscount(RuleBasedDiscount):
 
     def check_product(self, product):
         """Chequea el producto  aplicandole todas las reglas de este descuento.
-        Si supera las reglas se calcula el descuento.
+        Si supera las reglas se calcula el descuento y se devuelve.
         """
-        b = True
+        b = False
         for i, rule in enumerate(list(self.rules.all())):
-            if i == 0: #La primer regla siempre se agrega con un and
-                b = b and rule.check_product(product)
-            else:
-                if rule.use_or:
-                    b = b or rule.check_product(product) 
-                else:
-                    b = b and rule.check_product(product) 
+            b = b or rule.check_product(product) 
 
         if not b:
             raise NotApplicableException('El producto no ha superado las reglas para aplicar este descuento')
@@ -237,6 +232,7 @@ class CatalogDiscount(RuleBasedDiscount):
         price = product.price
         discount = price * self.discount / 100 if self.discount_unit == 2 else self.discount
         discount = discount.quantize(1) # para redondear el obj Price
+
         if discount > price:
             raise NotApplicableException('El descuento es mayor al precio del producto. No se puede aplicar')
         return discount
@@ -256,7 +252,7 @@ class CatalogDiscount(RuleBasedDiscount):
         verbose_name = u'Descuento de catálogo' 
         verbose_name_plural = u'Descuentos de catálogo' 
 
-'''
+
 class CatalogDiscountRule(models.Model):
 
     """Reglas aplicables para descuentos de catalogo. 
@@ -268,29 +264,29 @@ class CatalogDiscountRule(models.Model):
     """
 
     rtype = models.IntegerField(
-        "Tipo", choices=((1, 'Categoria'), (2, 'Producto')))
+        "Tipo", choices=((1, 'Categoria'), (2, 'Producto')), default=1)
     discount = models.ForeignKey(CatalogDiscount, related_name='rules')
-    category = models.ForeignKey(Category, null=True, blank=True)
-    product = models.ForeignKey(Product, null=True, blank=True)
-    use_or = models.BooleanField("Ó", default=False)
+    category = models.ManyToManyField(Category, null=True, blank=True)
+    product = models.ManyToManyField(Product, null=True, blank=True)
 
     def check_product(self, product):
         """Testea que el producto pase esta regla"""
         if self.rtype == 1:
             # Categoria
-            if product.category == self.category or product.category.parent == self.category:
+            if len(self.category.filter(pk=product.get_first_category().pk)):
                 return True
+            elif product.get_first_category().parent is not None:
+                return len(self.category.filter(pk=product.get_first_category().parent.pk )) > 0
+
         elif self.rtype == 2:
             # Producto
-            if product.product_ptr == self.product:
-                return True
+            return len(self.product.filter(pk=product.pk)) > 0
         return False
 
     def __unicode__(self):
-        entity = (u'Categoría', u'Producto')
-        obj = self.category  if self.rtype == 1 else self.product
-        return "%s = %s " %(entity[self.rtype-1], obj)
+        txt = u"Categoría"  if self.rtype == 1 else u"Producto"
+        return txt
+
     class Meta:
         verbose_name = u'Regla de catálogo'
         verbose_name_plural = u'Reglas de catálogo'
-'''
