@@ -1,0 +1,32 @@
+{%extends "admin/change_form.html"%}
+{%block content%}
+{{block.super}}
+<script>
+{#Script to only show one of the select widgets from the catalogdiscountrule form according to rtype #}
+(function($){
+    $(document).ready(
+            function() {
+                function update_rule_form() {
+                    console.log(this);
+                    var value = parseInt($(this).val());
+                    var fieldset_parent = $(this).closest('fieldset')
+                    console.log(value);
+                    if(value==1) {
+                        $("div.field-category", fieldset_parent).show();
+                        $("div.field-product", fieldset_parent).hide();
+                    }
+                    else {
+                        $("div.field-product", fieldset_parent).show();
+                        $("div.field-category", fieldset_parent).hide();
+
+                    }
+                }
+
+                $(".field-rtype select[name*='rtype']").change(function(){update_rule_form.bind(this)();});
+                $.each($(".field-rtype select[name*='rtype']"),function(){update_rule_form.bind(this)();});
+            }
+        );
+    
+    })(django.jQuery);
+</script>
+{%endblock%}
