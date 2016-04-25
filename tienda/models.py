@@ -111,6 +111,16 @@ class Product(models.Model):
     
     def price_with_discount(self):
         return self.price - self.discount_value
+    
+    def calculate_discount(self, discounts=[]):
+      d = 0
+      for discount in discounts:
+        try:
+            d = discount.check_product(self)
+        except:
+            pass
+        else:
+            return d # TODO only one discount
 
     class Meta:
         verbose_name = 'producto'

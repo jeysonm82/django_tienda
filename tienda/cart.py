@@ -52,7 +52,7 @@ class Cart(object):
 
     
     def get_total(self):
-        return sum([p.get_price() * q for p, q in self.storage.iteritems()])
+        return sum([p.get_price() * q for p, q in self.storage.iteritems()]) #TODO discounted price
         
     def __str__(self):
         return "%s"%(self.storage)
