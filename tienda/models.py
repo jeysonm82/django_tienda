@@ -83,7 +83,8 @@ class Product(models.Model):
     attributes = models.ManyToManyField('ProductAttribute', related_name='products', blank=True)
     updated_at = models.DateTimeField('updated at', auto_now=True, null=True)
     enabled = models.BooleanField('enabled', default=True)
-
+    discount = None
+    discount_value = 0
     objects = ProductManager()
     search = ProductSearchManager()
 
