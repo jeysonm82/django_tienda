@@ -11,14 +11,21 @@ class DiscountMiddleware:
         discounts = CatalogDiscount.objects.filter(enabled=True,
                                                    activated_by_coupon=False,
                                                    date_from__lte=today,
-                                                   date_to__gte=today, days__contains="%s"%(dt.weekday()+1)).prefetch_related('rules').order_by('priority') 
+                                                   date_to__gte=today, days__contains="%s"%(today.weekday()+1)).prefetch_related('rules').order_by('priority') 
 
         request.discounts = discounts
 
     def process_template_response(self, request, response):
-        if 'products' in response.context_data:
-            products = list(response.context_data['products'])
+        for plist in ('products', 'related_products'):
+            self.process_products_list(plist, request, response)
+        return response
+
+    def process_products_list(self, key, request, response):
+        if response.context_data is not None and key in response.context_data:
+            products = list(response.context_data[key])
             for product in products:
+                if product.discount is not None:
+                    continue
                 d = 0
                 for discount in request.discounts:
                     try:
@@ -26,9 +33,8 @@ class DiscountMiddleware:
                     except:
                         pass
                     else:
+                        product.discount = discount
+                        product.discount_value = d
                         break #TODO only one discount per product
-                product.discount = discount
-                product.discount_value = d
-            response.context_data['products'] = products
-        print "DISCOUN MIDDLEWARE"
-        return response
+            response.context_data[key] = products
+ 

@@ -88,7 +88,7 @@ class Product(models.Model):
     objects = ProductManager()
     search = ProductSearchManager()
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
     def get_first_category(self):
@@ -109,6 +109,9 @@ class Product(models.Model):
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
     
+    def price_with_discount(self):
+        return self.price - self.discount_value
+
     class Meta:
         verbose_name = 'producto'
         verbose_name_plural = 'productos'
