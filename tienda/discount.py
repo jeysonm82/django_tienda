@@ -1,7 +1,5 @@
-from saleor.more.models import CatalogDiscount
+from tienda.models import CatalogDiscount
 from datetime import datetime as dt
-from saleor.cart import Cart
-from django.db.models import Q
 
 
 class DiscountMiddleware:
@@ -32,4 +30,5 @@ class DiscountMiddleware:
                 product.discount = discount
                 product.discount_value = d
             response.context_data['products'] = products
+        print "DISCOUN MIDDLEWARE"
         return response
