@@ -136,6 +136,22 @@ class ChangePersonalDataView(FormView):
         data = form.cleaned_data
         changes = True
         user.first_name = data['name']
+        user.last_name = data['last_name']
+        user.gov_id = data['gov_id']
+        email = StoreUser.objects.normalize_email(data['email'])
+        user.email = email # TODO normalize email?
+        user.username = email
+
+        #Base address
+        base_address = user.addresses.all()[0]
+
+        base_address.city = data['city']
+        base_address.city_area = data['city_area']
+        base_address.street_address_1 = data['street_address_1']
+        base_address.phone = data['phone']
+        base_address.mobile = data['mobile']
+
+        base_address.save()
         # TODO next attrs
         # TODO remember set username  to email
         # Password con set_password y luego save al final
