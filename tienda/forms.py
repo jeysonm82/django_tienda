@@ -84,10 +84,10 @@ class UpdateUserForm(RegisterForm):
         if not user.check_password(self.request.POST['security_password']):
             messages.error(self.request,
                            'Por favor verifique que haya ingresado correctamente los campos del formulario')
-            raise forms.ValidationError('Contraseña incorrecta', code='invalid_password')
+            raise forms.ValidationError('Contraseña actual incorrecta', code='invalid_password')
         return self.cleaned_data
 
 UpdateUserForm.base_fields = OrderedDict(
     (k, UpdateUserForm.base_fields[k])
-    for k in ['name', 'last_name', 'email', 'repeat_email', 'security_password', 'password', 'repeat_password']
+    for k in ['name', 'last_name', 'email', 'repeat_email', 'gov_id', 'city', 'street_address_1','city_area', 'phone', 'mobile', 'security_password', 'password', 'repeat_password']
 )

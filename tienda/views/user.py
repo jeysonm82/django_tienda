@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from tienda import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import auth
 from tienda.models import StoreUser
 from tienda.forms import RegisterForm, UpdateUserForm
 from django.views.generic import TemplateView, FormView, ListView
@@ -110,10 +111,18 @@ class ChangePersonalDataView(FormView):
     def get_form(self, form_class=None):
         form = super(ChangePersonalDataView, self).get_form(form_class)
         form.request = self.request
-        form.fields['name'].initial = self.request.user.user.name
-        form.fields['last_name'].initial = self.request.user.user.last_name
-        form.fields['email'].initial = self.request.user.user.email
-        form.fields['repeat_email'].initial = self.request.user.user.email
+        form.fields['name'].initial = self.request.user.first_name
+        form.fields['last_name'].initial = self.request.user.last_name
+        form.fields['email'].initial = self.request.user.email
+        form.fields['repeat_email'].initial = self.request.user.email
+        user = self.request.user.storeuser
+        form.fields['gov_id'].initial = user.gov_id
+        base_address = user.addresses.all()[0]
+        form.fields['city'].initial = base_address.city
+        form.fields['city_area'].initial = base_address.city_area
+        form.fields['street_address_1'].initial = base_address.street_address_1
+        form.fields['phone'].initial = base_address.phone
+        form.fields['mobile'].initial = base_address.mobile
         return form
 
     def get_context_data(self, **kwargs):
@@ -123,24 +132,22 @@ class ChangePersonalDataView(FormView):
 
     def form_valid(self, form):
         """Este metodo se llama si la validacion del form fue exitosa"""
-        user = self.request.user.user
-        data = self.request.POST
-        changes = False
-        # TODO actualizar datos de user
+        user = self.request.user.storeuser
+        data = form.cleaned_data
+        changes = True
+        user.first_name = data['name']
+        # TODO next attrs
+        # TODO remember set username  to email
         # Password con set_password y luego save al final
-        if user.name != data['name']:
-            user.name = data['name']
-            changes = True
-        if user.last_name != data['last_name']:
-            user.last_name = data['last_name']
-            changes = True
-        if user.email != data['email']:
-            user.email = data['email']
-            changes = True
         if data['password'] != '' and not user.check_password(data['password']):
             user.set_password(data['password'])
+            user.save()
+            sessionuser = authenticate(username=user.email, password=data['password'])
+            login(self.request, sessionuser)
+
             changes = True
         user.save()
+
         if changes:
             messages.success(self.request, 'Sus datos han sido actualizados con éxito')
         return super(ChangePersonalDataView, self).form_valid(form)
