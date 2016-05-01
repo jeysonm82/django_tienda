@@ -14,6 +14,7 @@ from django.utils.text import slugify
 from haystack.query import SearchQuerySet
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -325,15 +326,25 @@ class Address(models.Model):
     street_address_2 = models.CharField(u'Dirección 2', max_length=256, blank=True, default='')
     city = models.CharField('Ciudad', max_length=256)
     city_area = models.CharField('Barrio', max_length=128)
-    phone = models.CharField(u'Teléfono',max_length=30)
+    phone = models.IntegerField(u'Teléfono')
+    mobile = models.IntegerField(u'Celular')
 
     def __unicode__(self):
         return "%s - %s"%(self.title, self.street_address_1)
 
-class UserManager(models.Manager):
-    pass
+class UserManager(BaseUserManager):
+
+    def create_user(self, email, password, name, last_name, gov_id, **extra_fields):
+        email = UserManager.normalize_email(email)
+        user = StoreUser(username=email, email=email, first_name=name, last_name=last_name, gov_id=gov_id,  is_active=True,
+                          is_staff=False, **extra_fields)
+        if password:
+            user.set_password(password)
+        user.save()
+        return user
 
 class StoreUser(User):
+    gov_id = models.IntegerField(u'Documento de identidad', null=True)
     addresses = models.ManyToManyField(Address, blank=True)
     default_shipping_address = models.ForeignKey(Address,related_name='+',
             verbose_name="Default shipping address", null=True, blank=True, on_delete=models.SET_NULL)
