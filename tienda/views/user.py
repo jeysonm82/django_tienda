@@ -37,21 +37,17 @@ class RegisterUserView(FormView):
                                         gov_id=data['gov_id'])
         return user
 
-class RegisterAndLoginView(TemplateView):
+class LoginLogoutView(TemplateView):
     """Vista de login y registro usada para acceder a otras vistas que requieran
     una sesion de usuario activa.
     - Login: El usuario existente se puede loguear. Una vez logueado lo redirecciona a
     la vista especificada en next (GET['next']).
-    -Register: El usuario nuevo se registra y el sistema lo loguea y aplica los mismos pasos.
-    Si ya hay una sesion iniciada se procede de inmediato a next.
     """
-    template_name = 'web_shop/login.html'
-    login_form, register_form = None, None
+    login_form = None
 
     def get_context_data(self, **kwargs):
-        context = super(RegisterAndLoginView, self).get_context_data(**kwargs)
+        context = super(LoginLogoutView, self).get_context_data(**kwargs)
         context['form'] = self.login_form or forms.LoginForm()
-        context['form_register'] = self.register_form or forms.RegisterForm()
         #El next se usa para saber adonde ir despues de que el form procese
         # correctamente (login o register).
         # El next puede estar en la url (GET)  o en el form (POST)
@@ -77,48 +73,22 @@ class RegisterAndLoginView(TemplateView):
             else:
                 return redirect('home')
 
-        return super(RegisterAndLoginView, self).dispatch(request, *args, **kwargs)
+        return super(LoginLogoutView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         data = request.POST or None     # lo que posteo el usuario
-        form_name = data['form_name'] if 'form_name' in data else ''
-
-        if(form_name == 'login'):
-            result = self.do_login(request, data)
-        elif(form_name == 'register'):
-            result = self.do_register(request, data)
-        else:
-            result = False
+        result = self.do_login(request, data)
 
         if result:
-            next_ = data['next']
+            next_ = data['next'] if 'next' in data else ''
             # redir a donde? depende
             if next_ == 'checkout':
                 #volver al checkout
                 return redirect('checkout_index')
             else:
-                #TODO redir a panel de usuario?
-                return redirect('home')
-        return super(RegisterAndLoginView, self).get(request, *args, **kwargs)
+                return redirect('panel_usuarios')
+        return super(LoginLogoutView, self).get(request, *args, **kwargs)
 
-    def do_register(self, request, data):
-        self.register_form = forms.RegisterForm(data=data)
-        if self.register_form.is_valid():
-            #Registrarlo
-            data = self.register_form.cleaned_data
-            user = StoreUser.objects.create_user(email=data['email'], password=data['password'],
-                                            name=data['name'], last_name=data['last_name'])
-            #Toca copiar la data de la sesion actual antes del login y restaurarla despues
-            data_session = {k: v for k, v in request.session.iteritems()}
-
-            #Autenticarlo
-            user = authenticate(username=data['email'], password=data['password'])
-            #Loguearlo
-            login(request, user)
-            for k, v in data_session.iteritems():
-                request.session[k] = v
-            return True
-        
 
     def do_login(self, request, data):
         self.login_form = forms.LoginForm(request, data=data)
