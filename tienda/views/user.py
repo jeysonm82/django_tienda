@@ -108,6 +108,11 @@ class ChangePersonalDataView(FormView):
     form_class = UpdateUserForm
     success_url = 'account_settings'
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_staff:
+            return redirect('home')
+        return super(ChangePersonalDataView, self).dispatch(request, *args, **kwargs)
+
     def get_form(self, form_class=None):
         form = super(ChangePersonalDataView, self).get_form(form_class)
         form.request = self.request
