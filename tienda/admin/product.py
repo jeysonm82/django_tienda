@@ -31,6 +31,7 @@ class ProductAdmin(admin.ModelAdmin):
         ("Categoria" +'', {'fields': ('categories',)}),
 
     )
+    search_fields = ("name", "description")
     inlines = [ProductImagesInline]
 
     
