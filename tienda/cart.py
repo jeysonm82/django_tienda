@@ -2,6 +2,13 @@ from tienda.models import Product
 from collections import OrderedDict
 
 class Cart(object):
+    _cart_instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._cart_instance:
+            cls._cart_instance = super(Cart, cls).__new__(
+                                cls, *args, **kwargs)
+        return cls._cart_instance
 
     def __init__(self, session_storage=None):
         self.storage = OrderedDict({})
@@ -10,7 +17,9 @@ class Cart(object):
         # Load session_storage
         pids = self.session_storage.keys()
         products = Product.objects.filter(pk__in=pids)
+        self.queryset = products
         self.storage = OrderedDict({p: session_storage["%s"%(p.pk)] for p in products})
+        Cart._cart_instance = self
 
     def add(self, product, quantity):
         if quantity == 0:
@@ -67,6 +76,7 @@ class CartMiddleware(object):
         except KeyError:
             cart_session_storage = {}
         setattr(request, 'cart', cart_session_storage)
+        setattr(request, 'cart_changed', False)
 
     def process_response(self, request, response):
         if hasattr(request, 'cart'):
