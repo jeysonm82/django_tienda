@@ -2,6 +2,7 @@ from tienda.models import Product
 from collections import OrderedDict
 
 class Cart(object):
+    '''
     _cart_instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -9,7 +10,7 @@ class Cart(object):
             cls._cart_instance = super(Cart, cls).__new__(
                                 cls, *args, **kwargs)
         return cls._cart_instance
-
+    '''
     def __init__(self, session_storage=None):
         self.storage = OrderedDict({})
         self.session_storage = session_storage
@@ -19,7 +20,7 @@ class Cart(object):
         products = Product.objects.filter(pk__in=pids)
         self.queryset = products
         self.storage = OrderedDict({p: session_storage["%s"%(p.pk)] for p in products})
-        Cart._cart_instance = self
+        #Cart._cart_instance = self
 
     def add(self, product, quantity):
         if quantity == 0:
