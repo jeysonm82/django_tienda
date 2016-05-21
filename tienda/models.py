@@ -330,7 +330,8 @@ class Address(models.Model):
     mobile = models.IntegerField(u'Celular')
 
     def __unicode__(self):
-        return "%s - %s"%(self.title, self.street_address_1)
+        #return "%s - %s"%(self.title, self.street_address_1)
+        return "%s, %s"%(self.street_address_1, self.city)
 
 class UserManager(BaseUserManager):
 
