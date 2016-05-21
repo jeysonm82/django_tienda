@@ -94,7 +94,7 @@ class CheckoutSerializer(serializers.Serializer):
 
 
 class CheckoutDetailRESTView(APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated)
 
     def get(self, request):
         Checkout.request = request
