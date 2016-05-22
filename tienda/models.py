@@ -350,3 +350,8 @@ class StoreUser(User):
     default_shipping_address = models.ForeignKey(Address,related_name='+',
             verbose_name="Default shipping address", null=True, blank=True, on_delete=models.SET_NULL)
     objects = UserManager()
+
+
+class Order(models.Model):
+    pass
+

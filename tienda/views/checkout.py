@@ -124,6 +124,20 @@ class CheckoutDetailRESTView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+"""
+1.InitCheckoutView initializes the checkout object with a cart object
+and redirects to CheckoutView.
+
+2.CheckoutView creates the frontend with the steps to complete checkout process.
+This frontend should show the checkout attributes like shipping_address, address, payment_method, and should provide controls to allow the user to update those attrs.
+
+3. CheckoutDetailRESTView is a REST API  to GET and update (PUT) the checkout obj attributes (shipping, address, etc.) via async requests (Ajax).
+This is used by the frontend created by CheckoutView.
+
+4. Finally CreateOrderView is called by the frontend when the checkout process is finalized and the order needs to be generated. 
+
+5. Once it's generated the user is redirected to the OrderDetailView.
+"""
 
 class InitCheckoutView(RedirectView):
 
