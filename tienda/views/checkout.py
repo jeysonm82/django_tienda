@@ -163,6 +163,8 @@ class CreateOrderView(RedirectView):
         try:
             checkout = Checkout(self.request.session[SESSION_KEY])
             order = checkout.create_order()
+            #Delete checkout from session
+            del self.request.session[SESSION_KEY]
         except:
             url = '/'
         else:

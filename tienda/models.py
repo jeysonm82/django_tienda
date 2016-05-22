@@ -15,6 +15,7 @@ from haystack.query import SearchQuerySet
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
+from django.utils.timezone import now
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -353,5 +354,44 @@ class StoreUser(User):
 
 
 class Order(models.Model):
-    pass
 
+    NEW = 'new'
+    CANCELLED = 'cancelled'
+    SHIPPED = 'shipped'
+    PAYMENT_PENDING = 'payment-pending'
+    FULLY_PAID = 'fully-paid'
+    STATUS_CHOICES = [(NEW, "En proceso"),
+        (CANCELLED, 'Cancelada'),
+        (SHIPPED, 'Enviada'),
+        (PAYMENT_PENDING, 'Pendiente de pago'),
+        (FULLY_PAID, 'Pagada')]
+
+    created = models.DateTimeField(default=now, editable=False)
+    status = models.CharField(u"Estado", choices=STATUS_CHOICES, max_length=30);
+    shipping_address = models.CharField(u"Dirección de envío", max_length=100)
+    user = models.ForeignKey(StoreUser, null=True, blank=True)
+    token = models.CharField(u"Token", max_length=36, unique=True)
+    shipping_method = models.CharField(u"Método de envío", max_length=30)
+    shipping_price = models.DecimalField(u"Valor domicilio",  max_digits=12, decimal_places=2)
+    payment_method = models.CharField(u"Método de pago", max_length=30)
+    payment_ref = models.CharField(u"Referencia de pago", max_length=50)
+    total = models.DecimalField(u"Total",  max_digits=12, decimal_places=2)
+    discounts = models.CharField(u"Descuentos aplicados", max_length=100)
+
+    def __unicode__(self):
+        return "Orden %s"%(self.token)
+
+    def recalculate_order(self):
+        pass
+
+class ProductOrder(models.Model):
+    order = models.ForeignKey(Order)
+    product = models.ForeignKey(Product, null=True, blank=True)
+    product_name = models.CharField(u"Nombre", max_length=100)
+    product_uid = models.CharField(u"Ref", max_length=32)
+    quantity = models.IntegerField(u"Cantidad")
+    price = models.DecimalField(u"Precio",  max_digits=12, decimal_places=2)
+    discount = models.DecimalField(u"Descuento", default=0,  max_digits=12, decimal_places=2)
+
+    def __unicode__(self):
+        return "%s. Cantidad: %s, Precio Unitario: %s"%(self.name, self.quantity, self.price - self.discount)
