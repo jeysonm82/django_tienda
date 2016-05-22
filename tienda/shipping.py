@@ -1,14 +1,27 @@
 class ShippingMethod(object):
-    pass
+    ref = None
+    data = None
+    def __unicode__(self):
+        return self.ref
 
+    def calculate(self):
+        pass
 
 class ShippingMethodRegister(object):
-    _reg = []
+    _reg = {}
 
     @classmethod
     def register(cls, shipping):
-        cls._reg.append(shipping)
+        cls._reg[shipping.ref] = shipping
 
     @classmethod
     def unregister(cls, shipping):
-        cls._reg.pop(shipping)
+        del cls._reg[shipping.ref]
+
+    @classmethod
+    def get(cls, ref):
+        return cls._reg[ref]
+
+    @classmethod
+    def all(cls):
+        return cls._reg.values()

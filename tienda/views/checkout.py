@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from tienda.views.cart import CartEntrySerializer, CartEntry
 from rest_framework import permissions
+from tienda.shipping import ShippingMethodRegister
+
 
 SESSION_KEY = 'TIENDA_CHECKOUT_KEY'
 
@@ -21,6 +23,7 @@ class Checkout(object):
         checkout_storage[u'cart'] = cart.session_storage #TODO shallow copy?
         checkout_storage[u'address'] = None
         checkout_storage[u'shipping_method'] = None
+        checkout_storage[u'shipping_price'] = None
         checkout_storage[u'payment_method'] = None
 
     @property
@@ -39,7 +42,6 @@ class Checkout(object):
 
     @shipping_address.setter
     def shipping_address(self, address):
-        print "SETTING ADDRESS", address
         self.checkout_storage[u'address'] = address
 
     @property
@@ -49,6 +51,10 @@ class Checkout(object):
     @shipping_method.setter
     def shipping_method(self, shipping):
         self.checkout_storage[u'shipping_method'] = shipping
+        shipm = ShippingMethodRegister.get(shipping)()
+        shipm.data = self.request.data
+        price = shipm.calculate()
+        self.shipping_price = price       
 
     @property
     def shipping_price(self):
@@ -63,7 +69,7 @@ class Checkout(object):
         return self.checkout_storage[u'payment_method']
 
     @payment_method.setter
-    def set_payment_method(self, payment):
+    def payment_method(self, payment):
         self.checkout_storage[u'payment_method'] = payment
 
     def create_order(self):
@@ -73,8 +79,9 @@ class Checkout(object):
 
 class CheckoutSerializer(serializers.Serializer):
     shipping_address = serializers.CharField(allow_null=True)
-    shipping_method = serializers.IntegerField()
-    payment_method = serializers.IntegerField()
+    shipping_method = serializers.CharField(allow_null=True)
+    shipping_price = serializers.IntegerField(read_only=True)
+    payment_method = serializers.CharField(allow_null=True)
     cart_entries = CartEntrySerializer(many=True, read_only=True)
 
     def create(self, validated_data):
@@ -94,7 +101,7 @@ class CheckoutSerializer(serializers.Serializer):
 
 
 class CheckoutDetailRESTView(APIView):
-    permission_classes = (permissions.IsAuthenticated)
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
         Checkout.request = request
@@ -133,3 +140,17 @@ class InitCheckoutView(RedirectView):
 
 class CheckoutView(TemplateView):
     template_name = ''
+
+
+class CreateOrderView(RedirectView):
+
+    def get_redirect_url(self, *args, **kwargs):
+        Checkout.request = self.request
+        try:
+            checkout = Checkout(self.request.session[SESSION_KEY])
+            order = checkout.create_order()
+        except:
+            url = '/'
+        else:
+            url = '/view-order/%s/'%(order.token)
+        return url
