@@ -1,6 +1,7 @@
 class PaymentMethod(object):
     name = None
     ref = None
+    payment_ref = "-"
 
     def __unicode__(self):
         return self.name

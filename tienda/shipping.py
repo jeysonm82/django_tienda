@@ -1,11 +1,20 @@
 class ShippingMethod(object):
     ref = None
-    data = None
+    _data = None
+
     def __unicode__(self):
         return self.ref
 
     def calculate(self):
         pass
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        self._data = data
 
 class ShippingMethodRegister(object):
     _reg = {}

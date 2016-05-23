@@ -146,3 +146,5 @@ HAYSTACK_CONNECTIONS = {
         'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
     },
 }
+
+PAYMENT_METHOD_CHOICES = [('test', 'TEST')]

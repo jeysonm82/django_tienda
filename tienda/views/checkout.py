@@ -31,6 +31,7 @@ class Checkout(object):
         checkout_storage[u'shipping_method'] = None
         checkout_storage[u'shipping_price'] = None
         checkout_storage[u'payment_method'] = None
+        self.checkout_storage[u'shipping_method_data'] = {}
 
     @property
     def cart(self):
@@ -72,6 +73,7 @@ class Checkout(object):
         shipm = ShippingMethodRegister.get(shipping)()
         if self.request:
             shipm.data = self.request.data
+            self.checkout_storage[u'shipping_method_data'] = shipm.data
         price = shipm.calculate()
         self.shipping_price = price       
 
@@ -107,9 +109,7 @@ class Checkout(object):
         # Instantiation and order creation
         #user = self.request.user.storeuser
         shipm = ShippingMethodRegister.get(self.shipping_method)()
-        if self.request:
-            shipm.data = self.request.data
-
+        shipm.data = self.checkout_storage[u'shipping_method_data']
         paym = PaymentMethodRegister.get(self.payment_method)()
 
         default_address = self.user.default_address()
@@ -130,7 +130,7 @@ class Checkout(object):
         order = Order.objects.create_order(self.user, shipping_address, shipm, paym, cart_entries, discounts)
         # Delete storage
         print "Order created: ", order
-        #del self.checkout_storage
+        del self.checkout_storage
         return order
 
 class CreateOrderException(Exception):
@@ -211,7 +211,7 @@ class InitCheckoutView(RedirectView):
         checkout = Checkout(self.request.session[SESSION_KEY])
         checkout.start(cart)
 
-        url = '/checkout/'
+        url = reverse_lazy('checkout')
         return url
 
 class CheckoutView(TemplateView):
