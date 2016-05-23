@@ -16,6 +16,8 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.utils.timezone import now
+from uuid import uuid4
+
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -90,7 +92,7 @@ class Product(models.Model):
     discount_value = 0
     objects = ProductManager()
     search = ProductSearchManager()
-
+    
     def __unicode__(self):
         return self.name
 
@@ -117,12 +119,17 @@ class Product(models.Model):
     
     def calculate_discount(self, discounts=[]):
       d = 0
+      if self.discount is not None:
+          return self.discount_value
+
       for discount in discounts:
         try:
             d = discount.check_product(self)
         except:
             pass
         else:
+            self.discount = discount
+            self.discount_value = d
             return d # TODO only one discount
 
     class Meta:
@@ -352,6 +359,59 @@ class StoreUser(User):
             verbose_name="Default shipping address", null=True, blank=True, on_delete=models.SET_NULL)
     objects = UserManager()
 
+    def default_address(self):
+        return self.addresses.first()
+
+class OrderManager(models.Manager):
+
+    def create_order(self,user, shipping_address, shipping_method, payment_method, cart_storage, discounts=None):
+        """
+        shipping_method: ShippingMethod instance (with address)
+        payment_method: PaymentMethod instance 
+        """
+
+        order = Order()
+        order.user = user
+        order.shipping_method = shipping_method.ref
+        order.shipping_address = shipping_address
+        order.shipping_price = shipping_method.calculate()
+        order.payment_method = payment_method.ref
+        order.payment_method = payment_method.payment_ref
+
+        applied_discounts = set()
+        total = 0
+
+        p_orders = []
+        for p, q in cart_storage.iteritems():
+            p_order = ProductOrder()
+            p_order.product = p
+            p_order.product_name = p.name
+            p_order.product_uid = p.uid
+            p_order.quantity = q
+            p_order.price = p.price
+            try:
+                p_order.discount_price = p.calculate_discount(discounts)
+            except:
+                p_order.discount_price = 0
+            p_orders.append(p_order)
+
+            if p.discount is not None:
+                applied_discounts.add(p.discount)
+            total += (p_order.price - p_order.discount_price)  * p_order.quantity
+
+        order.discounts = ', '.join([p.discount.name for p in applied_discounts])
+        total += order.shipping_price
+        order.total = total
+        order.status = Order.NEW
+        order.token = str(uuid4())
+        # Save stuff
+        order.save()
+        for po in p_orders:
+            po.order = order
+            po.save()
+
+        return order
+
 
 class Order(models.Model):
 
@@ -368,15 +428,16 @@ class Order(models.Model):
 
     created = models.DateTimeField(default=now, editable=False)
     status = models.CharField(u"Estado", choices=STATUS_CHOICES, max_length=30);
-    shipping_address = models.CharField(u"Dirección de envío", max_length=100)
     user = models.ForeignKey(StoreUser, null=True, blank=True)
     token = models.CharField(u"Token", max_length=36, unique=True)
     shipping_method = models.CharField(u"Método de envío", max_length=30)
+    shipping_address = models.ForeignKey(Address, null=True)
     shipping_price = models.DecimalField(u"Valor domicilio",  max_digits=12, decimal_places=2)
     payment_method = models.CharField(u"Método de pago", max_length=30)
     payment_ref = models.CharField(u"Referencia de pago", max_length=50)
     total = models.DecimalField(u"Total",  max_digits=12, decimal_places=2)
     discounts = models.CharField(u"Descuentos aplicados", max_length=100)
+    objects = OrderManager()
 
     def __unicode__(self):
         return "Orden %s"%(self.token)
@@ -385,13 +446,13 @@ class Order(models.Model):
         pass
 
 class ProductOrder(models.Model):
-    order = models.ForeignKey(Order)
+    order = models.ForeignKey(Order, related_name='products')
     product = models.ForeignKey(Product, null=True, blank=True)
     product_name = models.CharField(u"Nombre", max_length=100)
     product_uid = models.CharField(u"Ref", max_length=32)
     quantity = models.IntegerField(u"Cantidad")
     price = models.DecimalField(u"Precio",  max_digits=12, decimal_places=2)
-    discount = models.DecimalField(u"Descuento", default=0,  max_digits=12, decimal_places=2)
+    discount_price = models.DecimalField(u"Descuento", default=0,  max_digits=12, decimal_places=2)
 
     def __unicode__(self):
         return "%s. Cantidad: %s, Precio Unitario: %s"%(self.name, self.quantity, self.price - self.discount)

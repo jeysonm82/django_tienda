@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.views.generic import TemplateView, FormView, View, RedirectView
 from django.core.urlresolvers import reverse_lazy
 from tienda.cart import Cart
@@ -8,12 +9,16 @@ from rest_framework import status
 from tienda.views.cart import CartEntrySerializer, CartEntry
 from rest_framework import permissions
 from tienda.shipping import ShippingMethodRegister
+from tienda.payment import PaymentMethodRegister
+from tienda.models import Order
+from tienda.models import Address
 
 
 SESSION_KEY = 'TIENDA_CHECKOUT_KEY'
 
 class Checkout(object):
     request = None
+    user = None
 
     def __init__(self, checkout_storage):
         self.checkout_storage = checkout_storage
@@ -22,15 +27,19 @@ class Checkout(object):
         checkout_storage = self.checkout_storage
         checkout_storage[u'cart'] = cart.session_storage #TODO shallow copy?
         checkout_storage[u'address'] = None
+        checkout_storage[u'city'] = None
         checkout_storage[u'shipping_method'] = None
         checkout_storage[u'shipping_price'] = None
         checkout_storage[u'payment_method'] = None
 
     @property
+    def cart(self):
+        return Cart(self.checkout_storage[u'cart'])
+
+    @property
     def cart_entries(self):
-        cart = Cart(self.checkout_storage[u'cart'])
         entries = []
-        for p, q in cart.storage.iteritems():
+        for p, q in self.cart.storage.iteritems():
             entries.append(CartEntry(p.pk, q, p.name, p.price,
                 p.get_first_category().pk, p.images.first(),
                  p.calculate_discount(Checkout.request.discounts)))
@@ -45,6 +54,15 @@ class Checkout(object):
         self.checkout_storage[u'address'] = address
 
     @property
+    def shipping_address_city(self):
+        return self.checkout_storage[u'city']
+
+    @shipping_address_city.setter
+    def shipping_address_city(self, address):
+        self.checkout_storage[u'city'] = address
+
+
+    @property
     def shipping_method(self):
         return self.checkout_storage[u'shipping_method']
 
@@ -52,7 +70,8 @@ class Checkout(object):
     def shipping_method(self, shipping):
         self.checkout_storage[u'shipping_method'] = shipping
         shipm = ShippingMethodRegister.get(shipping)()
-        shipm.data = self.request.data
+        if self.request:
+            shipm.data = self.request.data
         price = shipm.calculate()
         self.shipping_price = price       
 
@@ -73,12 +92,53 @@ class Checkout(object):
         self.checkout_storage[u'payment_method'] = payment
 
     def create_order(self):
-        # TODO preconditions
-        pass
-        # TODO delete storage
+        # preconditions
+        if self.user is None:
+            raise CreateOrderException("No hay usuario en el sistema")
+        if self.payment_method is None:
+            raise CreateOrderException(u"Método de pago no válido")
+        if self.shipping_method is None:
+            raise CreateOrderException(u"Método de envío pago no válido")
+        if self.shipping_address is None or self.shipping_address_city is None:
+            raise CreateOrderException(u"Dirección de envío no válida")
+        cart_entries = self.cart.storage
+        if(not len(cart_entries)):
+            raise CreateOrderException(u"No hay productos en el carrito")
+        # Instantiation and order creation
+        #user = self.request.user.storeuser
+        shipm = ShippingMethodRegister.get(self.shipping_method)()
+        if self.request:
+            shipm.data = self.request.data
+
+        paym = PaymentMethodRegister.get(self.payment_method)()
+
+        default_address = self.user.default_address()
+        shipping_address = Address()
+        shipping_address.street_address_1 = self.shipping_address
+        shipping_address.city = self.shipping_address_city
+        shipping_address.phone = default_address.phone
+        shipping_address.mobile = default_address.mobile
+        shipping_address.first_name = default_address.first_name
+        shipping_address.last_name = default_address.last_name
+        shipping_address.title = "-"
+        shipping_address.city_area = "-"
+        shipping_address.save()
+
+        
+        discounts = self.request.discounts if self.request else None
+
+        order = Order.objects.create_order(self.user, shipping_address, shipm, paym, cart_entries, discounts)
+        # Delete storage
+        print "Order created: ", order
+        #del self.checkout_storage
+        return order
+
+class CreateOrderException(Exception):
+    pass
 
 class CheckoutSerializer(serializers.Serializer):
     shipping_address = serializers.CharField(allow_null=True)
+    shipping_address_city = serializers.CharField(allow_null=True)
     shipping_method = serializers.CharField(allow_null=True)
     shipping_price = serializers.IntegerField(read_only=True)
     payment_method = serializers.CharField(allow_null=True)
@@ -94,6 +154,8 @@ class CheckoutSerializer(serializers.Serializer):
 
         if 'shipping_address' in self.validated_data:
             instance.shipping_address = self.validated_data.get('shipping_address')
+        if 'shipping_address_city' in self.validated_data:
+            instance.shipping_address_city = self.validated_data.get('shipping_address_city')
 
         if 'shipping_method' in self.validated_data:
             instance.shipping_method = self.validated_data.get('shipping_method')
@@ -154,19 +216,3 @@ class InitCheckoutView(RedirectView):
 
 class CheckoutView(TemplateView):
     template_name = ''
-
-
-class CreateOrderView(RedirectView):
-
-    def get_redirect_url(self, *args, **kwargs):
-        Checkout.request = self.request
-        try:
-            checkout = Checkout(self.request.session[SESSION_KEY])
-            order = checkout.create_order()
-            #Delete checkout from session
-            del self.request.session[SESSION_KEY]
-        except:
-            url = '/'
-        else:
-            url = '/view-order/%s/'%(order.token)
-        return url
