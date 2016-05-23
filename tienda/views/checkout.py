@@ -131,6 +131,7 @@ class Checkout(object):
         # Delete storage
         print "Order created: ", order
         del self.checkout_storage
+        self.checkout_storage = {}
         return order
 
 class CreateOrderException(Exception):
