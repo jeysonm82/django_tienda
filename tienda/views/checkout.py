@@ -128,10 +128,7 @@ class Checkout(object):
         discounts = self.request.discounts if self.request else None
 
         order = Order.objects.create_order(self.user, shipping_address, shipm, paym, cart_entries, discounts)
-        # Delete storage
         print "Order created: ", order
-        del self.checkout_storage
-        self.checkout_storage = {}
         return order
 
 class CreateOrderException(Exception):
@@ -203,14 +200,15 @@ This is used by the frontend created by CheckoutView.
 """
 
 class InitCheckoutView(RedirectView):
+    checkout = None
 
     def get_redirect_url(self, *args, **kwargs):
         #TODO redirect t o login/register and dont start chechout
         cart = Cart(self.request.cart)
         if SESSION_KEY not in self.request.session:
             self.request.session[SESSION_KEY] = {}
-        checkout = Checkout(self.request.session[SESSION_KEY])
-        checkout.start(cart)
+        self.checkout = Checkout(self.request.session[SESSION_KEY])
+        self.checkout.start(cart)
 
         url = reverse_lazy('checkout')
         return url

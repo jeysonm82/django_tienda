@@ -12,7 +12,7 @@ class PaymentInline(admin.StackedInline):
 class OrderAdmin(admin.ModelAdmin):
     model = Order
     inlines = [ProductOrderInline, PaymentInline]
-    readonly_fields = ['total', 'user', 'full_address', 'shipping_method']
+    readonly_fields = ['total', 'user', 'full_address', 'shipping_method', 'extra']
     search_fields = ['token']
 
 

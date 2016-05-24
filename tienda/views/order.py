@@ -13,13 +13,18 @@ TOKEN_PATTERN = ('(?P<token>[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}'
                  '-[0-9a-z]{12})')
 
 class CreateOrderView(RedirectView):
+    checkout = None
+
+    def create_order(self):
+        order = self.checkout.create_order()
+        return order
 
     def get_redirect_url(self, *args, **kwargs):
         Checkout.request = self.request
         try:
-            checkout = Checkout(self.request.session[SESSION_KEY])
-            checkout.user = self.request.user.storeuser
-            order = checkout.create_order()
+            self.checkout = Checkout(self.request.session[SESSION_KEY])
+            self.checkout.user = self.request.user.storeuser
+            order = self.create_order()
             del self.request.session[SESSION_KEY]
         except Exception as e:
             url = reverse_lazy('checkout')
@@ -39,6 +44,7 @@ class OrderDetailView(DetailView):
 class ProductOrderSerializer(serializers.ModelSerializer):
     discount = serializers.SerializerMethodField("_discount") #renaming discount_price to discount
     image = serializers.SerializerMethodField("_product_image")
+    name = serializers.SerializerMethodField("_product_name")
 
     def _discount(self, obj):
         return float(obj.discount_price)
@@ -48,9 +54,12 @@ class ProductOrderSerializer(serializers.ModelSerializer):
         if img is not None:
             return img.image.thumbnail['200x150'].url
 
+    def _product_name(self, obj):
+        return obj.product_name
+
     class Meta:
         model = ProductOrder
-        fields = ('id', 'product_name', 'quantity', 'price', 'discount', 'discount_price', 'image')
+        fields = ('id', 'name', 'quantity', 'price', 'discount', 'discount_price', 'image')
 
 class OrderSerializer(serializers.ModelSerializer):
     products = ProductOrderSerializer(many=True, read_only=True)
