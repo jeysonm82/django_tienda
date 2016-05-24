@@ -81,11 +81,11 @@ class LoginLogoutView(TemplateView):
         result = self.do_login(request, data)
 
         if result:
-            next_ = data['next'] if 'next' in data else ''
+            next_ = self.request.GET.get('next') if 'next' in self.request.GET else ''
             # redir a donde? depende
-            if next_ == 'checkout':
+            if 'init-checkout' in next_:
                 #volver al checkout
-                return redirect('checkout_index')
+                return redirect('init-checkout')
             else:
                 return redirect('panel_usuarios')
         return super(LoginLogoutView, self).get(request, *args, **kwargs)

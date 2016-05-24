@@ -4,16 +4,18 @@ from datetime import datetime as dt
 
 class DiscountMiddleware:
 
-    def process_request(self, request):
-        """Carga a request los descuentos habilitados y que estan vigentes segun las fechas"""
-        
+    def get_discounts_qset(self):
         today = dt.today()
         discounts = CatalogDiscount.objects.filter(enabled=True,
                                                    activated_by_coupon=False,
                                                    date_from__lte=today,
                                                    date_to__gte=today, days__contains="%s"%(today.weekday()+1)).prefetch_related('rules').order_by('priority') 
+        return discounts
 
-        request.discounts = discounts
+
+    def process_request(self, request):
+        """Carga a request los descuentos habilitados y que estan vigentes segun las fechas"""
+        request.discounts = self.get_discounts_qset()
 
     def process_template_response(self, request, response):
         for plist in ('products', 'related_products'):
