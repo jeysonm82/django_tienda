@@ -209,7 +209,8 @@ class InitCheckoutView(RedirectView):
             self.request.session[SESSION_KEY] = {}
         self.checkout = Checkout(self.request.session[SESSION_KEY])
         self.checkout.start(cart)
-
+        
+        
         url = reverse_lazy('checkout')
         return url
 

@@ -2,6 +2,7 @@ from django.views.generic import TemplateView, FormView, View, RedirectView, Det
 from tienda.views.checkout import Checkout, SESSION_KEY
 from django.core.urlresolvers import reverse_lazy
 from tienda.models import Order, ProductOrder
+from tienda.cart import Cart
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
@@ -26,6 +27,13 @@ class CreateOrderView(RedirectView):
             self.checkout.user = self.request.user.storeuser
             order = self.create_order()
             del self.request.session[SESSION_KEY]
+
+            # Empty cart
+            cart = Cart(self.request.cart)
+            cart.remove_all() #TODO remove the products in order only
+            del self.request.session['TIENDA_CART_KEY'] #TODO get key from settings
+            self.request.cart = {}
+
         except Exception as e:
             url = reverse_lazy('checkout')
             print "ERROR", e

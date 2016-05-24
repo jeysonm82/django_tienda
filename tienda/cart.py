@@ -57,6 +57,10 @@ class Cart(object):
         if self.session_storage is not None and u"%s"%(product.pk) in self.session_storage:
             del self.session_storage[u"%s"%(product.pk)]
 
+    def remove_all(self):
+        self.storage = {}
+        self.session_storage = {}
+    
     def to_session_storage(self):
         return {u"%s"%(k.pk): v for k, v in self.storage.iteritems()}
 
