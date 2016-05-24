@@ -410,7 +410,7 @@ class OrderManager(models.Manager):
                 applied_discounts.add(p.discount)
             total += (p_order.price - p_order.discount_price)  * p_order.quantity
 
-        order.discounts = ', '.join([p.discount.name for p in applied_discounts])
+        order.discounts = ', '.join(["%s (id: %s)"%(d.name, d.pk) for d in applied_discounts])
         total += order.shipping_price
         order.total = total
         order.status = Order.NEW
@@ -482,4 +482,3 @@ class Payment(models.Model):
     method = models.CharField(u"Método de pago", max_length=30, choices=settings.PAYMENT_METHOD_CHOICES)
     payment_ref = models.CharField(u"Referencia de pago", max_length=50)
     status = models.CharField(u"Estado", choices=STATUS_CHOICES, max_length=30, default=Order.PAYMENT_PENDING)
-    
