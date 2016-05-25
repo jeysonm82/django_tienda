@@ -9,7 +9,7 @@ class DiscountMiddleware:
         discounts = CatalogDiscount.objects.filter(enabled=True,
                                                    activated_by_coupon=False,
                                                    date_from__lte=today,
-                                                   date_to__gte=today, days__contains="%s"%(today.weekday()+1)).prefetch_related('rules').order_by('priority') 
+                                                   date_to__gte=today, days__contains="%s"%(today.weekday()+1)).prefetch_related('rules', 'rules__category', 'rules__product').order_by('priority') 
         return discounts
 
 
@@ -29,14 +29,5 @@ class DiscountMiddleware:
                 if product.discount is not None:
                     continue
                 d = 0
-                for discount in request.discounts:
-                    try:
-                        d = discount.check_product(product)
-                    except:
-                        pass
-                    else:
-                        product.discount = discount
-                        product.discount_value = d
-                        break #TODO only one discount per product
+                product.calculate_discount()
             response.context_data[key] = products
- 

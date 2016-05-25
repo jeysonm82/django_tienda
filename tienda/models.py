@@ -43,6 +43,12 @@ class Category(MPTTModel):
 class ProductManager(models.Manager):
 
     """ Product manager for product for table level operations """
+    with_prefecth = True
+
+    def get_queryset(self):
+        if ProductManager.with_prefecth:
+            return super(ProductManager, self).get_queryset().prefetch_related(*(("categories", "images")+settings.PRODUCT_PREFECTH_MODELS))
+        return super(ProductManager, self).get_queryset()
 
     def get_products_from_cat(self, category):
         """ Gets products from category and child categories """
@@ -97,7 +103,15 @@ class Product(models.Model):
         return self.name
 
     def get_first_category(self):
-        return self.categories.filter(visible=True).first()
+        #return self.categories.filter(visible=True).first()
+        qset = self.categories.all()
+        if qset:
+            return qset[0]
+    
+    def get_first_image(self):
+        qset = self.images.all()
+        if qset:
+            return qset[0]
 
     def __hash__(self):
         return hash((self.pk, self.name))
@@ -122,6 +136,9 @@ class Product(models.Model):
       if self.discount is not None:
         return self.discount_value
 
+      ProductManager.with_prefecth = False
+      #with_prefecth = false to avoid related product models from CatalogDiscountRule.product to
+      #unnecessarily prefetch related models.
       for discount in discounts:
         try:
             d = discount.check_product(self)
@@ -130,7 +147,10 @@ class Product(models.Model):
         else:
             self.discount = discount
             self.discount_value = d
+            ProductManager.with_prefecth = True
             return d # TODO only one discount
+
+      ProductManager.with_prefecth = True
       return 0
 
     class Meta:
@@ -248,7 +268,7 @@ class CatalogDiscount(RuleBasedDiscount):
         Si supera las reglas se calcula el descuento y se devuelve.
         """
         b = False
-        for i, rule in enumerate(list(self.rules.all())):
+        for i, rule in enumerate(self.rules.all()):
             b = b or rule.check_product(product) 
 
         if not b:
@@ -266,7 +286,7 @@ class CatalogDiscount(RuleBasedDiscount):
         """Devuelve string que explica las reglas"""
         rules = self.rules.all()
         out= []
-        for i, r in enumerate(list(rules)):
+        for i, r in enumerate(rules):
             if i: #no se tiene en cuenta conector en regla 1
                 con = '<b>Ó</b>' if r.use_or else '<b>y</b>'
                 out.append(con)
@@ -275,7 +295,7 @@ class CatalogDiscount(RuleBasedDiscount):
     
     def get_products_queryset(self):
         queryset = Product.objects.none()
-        for i, rule in enumerate(list(self.rules.all())):
+        for i, rule in enumerate(self.rules.all()):
             if rule.rtype == 1:
                 qset = Product.objects.filter(categories__in=rule.category.all(), enabled=True)
             elif rule.rtype == 2:
@@ -309,10 +329,12 @@ class CatalogDiscountRule(models.Model):
         """Testea que el producto pase esta regla"""
         if self.rtype == 1:
             # Categoria
-            if len(self.category.filter(pk=product.get_first_category().pk)):
+            pcat = product.get_first_category()
+            #if len(self.category.filter(pk=pcat.pk)):
+            if pcat in self.category.all():
                 return True
-            elif product.get_first_category().parent is not None:
-                return len(self.category.filter(pk=product.get_first_category().parent.pk )) > 0
+            elif pcat.parent is not None:
+                return len(self.category.filter(pk=pcat.parent.pk )) > 0
 
         elif self.rtype == 2:
             # Producto

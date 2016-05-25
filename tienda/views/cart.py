@@ -60,7 +60,7 @@ class CartRESTView(APIView):
         entries = []
         for p, q in cart.storage.iteritems():
             entries.append(CartEntry(p.pk, q, p.name, p.price,
-                p.get_first_category().pk, p.images.first(),
+                p.get_first_category().pk, p.get_first_image(),
                  p.calculate_discount(request.discounts)))
 
         serializer = CartEntrySerializer(entries, many=True)
