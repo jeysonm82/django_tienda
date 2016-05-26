@@ -18,6 +18,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
+/*Rewrite of SelectBox.js for FilteredBox. Basically it queries a RESTApi to get the filtered options*/
 
 (function() {
     'use strict';

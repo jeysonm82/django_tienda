@@ -29,5 +29,5 @@ class DiscountMiddleware:
                 if product.discount is not None:
                     continue
                 d = 0
-                product.calculate_discount()
+                product.calculate_discount(request.discounts)
             response.context_data[key] = products
