@@ -299,6 +299,7 @@ class CatalogDiscount(RuleBasedDiscount):
         return ' '.join(out)
     
     def get_products_queryset(self):
+        """Get all products affected by this discount"""
         queryset = Product.objects.none()
         for i, rule in enumerate(self.rules.all()):
             if rule.rtype == 1:
@@ -308,6 +309,19 @@ class CatalogDiscount(RuleBasedDiscount):
             queryset |= qset
         queryset = queryset.distinct()
         return queryset
+
+    def get_cats_queryset(self):
+        """Get all categories affected by this discount"""
+        queryset = Category.objects.none()
+        for i, rule in enumerate(self.rules.all()):
+            if rule.rtype == 1:
+                qset = rule.category.all()
+            elif rule.rtype == 2:
+                qset = Category.objects.filter(products__in=rule.product.all_noprefetch())
+            queryset |= qset
+        queryset = queryset.distinct()
+        return queryset
+
 
     class Meta:
         verbose_name = u'Descuento de catálogo' 

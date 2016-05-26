@@ -10,12 +10,14 @@ from rest_framework import permissions
 #CartEntry = namedtuple('CartEntry', ['product_pk', 'quantity'])
 
 class CartEntry(object):
-    def __init__(self, product_pk, quantity, name, price, category_pk, image, discount):
+    def __init__(self, product_pk, quantity, name, price, category, image, discount):
         self.product_pk = product_pk
         self.quantity = quantity
         self.name = name
         self.price = price
-        self.category_pk = category_pk
+        self.category_pk = 0
+        if category is not None:
+            self.category_pk = category.pk
         self.discount = discount
 
         if image is not None:
@@ -44,7 +46,7 @@ class CartEntrySerializer(serializers.Serializer):
         else:
             self.cart.add(prod, qty)
             return CartEntry(prod.pk, self.cart.storage[prod], prod.name,
-                    prod.price, prod.get_first_category().pk,
+                    prod.price, prod.get_first_category(),
                     prod.images.first(), prod.calculate_discount(self.request.discounts))
         
     def update(self, instance, validated_data):
@@ -60,7 +62,7 @@ class CartRESTView(APIView):
         entries = []
         for p, q in cart.storage.iteritems():
             entries.append(CartEntry(p.pk, q, p.name, p.price,
-                p.get_first_category().pk, p.get_first_image(),
+                p.get_first_category(), p.get_first_image(),
                  p.calculate_discount(request.discounts)))
 
         serializer = CartEntrySerializer(entries, many=True)
@@ -77,7 +79,7 @@ class CartEntryDetailRESTView(CartRESTView):
 
         product = Product.objects.get(pk=pk)
         entry  = CartEntry(pk, cart.storage[product], product.name,
-                product.price, product.get_first_category().pk,
+                product.price, product.get_first_category(),
                 product.images.first(), product.calculate_discount(request.discounts))
         serializer = CartEntrySerializer(entry)
         return Response(serializer.data)
@@ -99,7 +101,7 @@ class CartEntryDetailRESTView(CartRESTView):
 
         product = Product.objects.get(pk=pk)
         entry  = CartEntry(pk, cart.storage[product], product.name,
-                   product.price, product.get_first_category().pk,
+                   product.price, product.get_first_category(),
                    product.images.first(), product.calculate_discount(request.discounts))
         serializer = CartEntrySerializer(entry, data=request.data)
 
