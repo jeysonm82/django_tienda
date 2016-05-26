@@ -67,6 +67,11 @@ class ProductManager(models.Manager):
         #return self.get_products_from_cat(category).filter(featured=True)
         pass
 
+    def all_noprefetch(self):
+        ProductManager.with_prefecth = False
+        qset = self.all()
+        ProductManager.with_prefecth = True
+        return qset
 
 class ProductSearchManager(models.Manager):
     """ Product manager using django haystack queryset for search"""
@@ -342,7 +347,7 @@ class CatalogDiscountRule(models.Model):
         return False
 
     def __unicode__(self):
-        txt = u"Categoría"  if self.rtype == 1 else u"Producto"
+        txt = u"Categoria"  if self.rtype == 1 else u"Producto"
         return txt
 
     class Meta:

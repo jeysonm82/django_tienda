@@ -4,6 +4,13 @@ from tienda.models import Category, Product, ProductManager
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework import permissions
+from rest_framework.views import APIView
+from rest_framework import serializers
+from rest_framework import generics
+
 
 class CatalogView(ListView):
     template_name = 'more/catalog/catalog.html'
@@ -38,3 +45,21 @@ class CatalogView(ListView):
         context['category'] = self.category
         context['category_list'] = category_list
         return context
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ('id', 'name')
+
+class AdminProductListRESTView(generics.ListAPIView):
+    """Used for catalogdiscount admin to filter list of products"""
+    queryset = Product.objects.all_noprefetch()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        qset = super(AdminProductListRESTView, self).get_queryset()
+        if "name" in self.request.GET:
+            qset = qset.filter(name__contains=self.request.GET.get("name"))
+        return qset

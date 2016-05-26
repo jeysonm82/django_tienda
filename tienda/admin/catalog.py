@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
-from tienda.models import CategoryImage, Category, CatalogDiscount, CatalogDiscountRule
+from tienda.models import CategoryImage, Category, CatalogDiscount, CatalogDiscountRule, Product
 from django import forms
 
 class CategoryImageInline(admin.TabularInline):
@@ -21,8 +21,37 @@ class CategoryAdmin(MPTTModelAdmin):
     tabbed_name.allow_tags = True
     tabbed_name.short_description = Category._meta.verbose_name
 
+
+class CustomFilteredSelectMultiple(admin.widgets.FilteredSelectMultiple):
+    """Custom filtered box that filters the options by querying a REST API. Useful when the options list is large (>1000)"""
+    @property
+    def media(self):
+        js = ["core.js", "SelectFilter2.js"]
+        #Custom SelectBox is implemented in filtered_select_multiple_products
+        fm = forms.Media(js=["admin/js/%s" % path for path in js] + ["js/filtered_select_multiple_products.js"])
+        return fm
+
+
+class CatalogDiscountRuleForm(forms.ModelForm):
+    product = forms.ModelMultipleChoiceField(queryset=Product.objects.none(), required=False, widget=CustomFilteredSelectMultiple("Productos", is_stacked=False))
+
+    def __init__(self, *args, **kwargs):
+        super(CatalogDiscountRuleForm, self).__init__(*args, **kwargs)
+        if self.instance.pk:
+            if 'data' in kwargs:
+                # We're posting
+                self.fields['product'].queryset = Product.objects.all_noprefetch()
+            else:
+                self.fields['product'].queryset = self.instance.product.all_noprefetch() #Product.objects.all_noprefetch()
+                    
+        pass
+
+    class Meta:
+        Model=CatalogDiscountRule
+
 class CatalogDiscountRuleInline(admin.StackedInline):
     model = CatalogDiscountRule
+    form=CatalogDiscountRuleForm
     extra = 0
     fields = ['rtype', 'category', 'product']
     filter_horizontal = ('category','product')
