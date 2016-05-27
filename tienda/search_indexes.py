@@ -3,7 +3,7 @@ import datetime
 from tienda.models import Product
 
 class ProductIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.CharField(document=True, use_template=True)
+    text = indexes.NgramField(document=True, use_template=True)
     enabled = indexes.BooleanField(model_attr='enabled')
     #categories = indexes.CharField(model_attr='categories')
 
