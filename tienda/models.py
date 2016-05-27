@@ -36,8 +36,8 @@ class Category(MPTTModel):
         return self.name
 
     class Meta:
-        verbose_name = 'categoria'
-        verbose_name_plural = 'categorias'
+        verbose_name = u'categoría'
+        verbose_name_plural = u'categorías'
 
 
 class ProductManager(models.Manager):
@@ -91,14 +91,14 @@ class ProductSearchManager(models.Manager):
         return Product.objects.filter(pk__in=pks)
 
 class Product(models.Model):
-    name = models.CharField('name', max_length=128)
-    description = models.TextField('description', blank=True, default='')
-    price = models.DecimalField('price', max_digits=12, decimal_places=2)
-    uid = models.CharField('Ref', max_length=32, unique=True)
+    name = models.CharField('Nombre', max_length=128)
+    description = models.TextField(u'Descripción', blank=True, default='')
+    price = models.DecimalField(u'Precio', max_digits=12, decimal_places=2)
+    uid = models.CharField(u'Referencia', max_length=32, unique=True)
     categories = models.ManyToManyField(Category, related_name='products')
     attributes = models.ManyToManyField('ProductAttribute', related_name='products', blank=True)
     updated_at = models.DateTimeField('updated at', auto_now=True, null=True)
-    enabled = models.BooleanField('enabled', default=True)
+    enabled = models.BooleanField(u'Habilitado', default=True)
     discount = None
     discount_value = 0
     objects = ProductManager()
@@ -159,8 +159,8 @@ class Product(models.Model):
       return 0
 
     class Meta:
-        verbose_name = 'producto'
-        verbose_name_plural = 'productos'
+        verbose_name = 'Producto'
+        verbose_name_plural = 'Productos'
 
 class ProductVariant(models.Model):
     name = models.CharField('name', max_length=128)
@@ -181,8 +181,8 @@ class ProductImage(models.Model):
     alt = models.CharField('short description', max_length=128, blank=True)
 
     class Meta:
-        verbose_name = 'imagen de producto'
-        verbose_name_plural = 'imagenes de producto'
+        verbose_name = 'Imagen de producto'
+        verbose_name_plural = 'Imágenes de producto'
 
 class CategoryImage(models.Model):
     category = models.ForeignKey(Category, related_name='images')
@@ -191,6 +191,10 @@ class CategoryImage(models.Model):
     ppoi = PPOIField()
     alt = models.CharField('short description', max_length=128, blank=True)
 
+
+    class Meta:
+        verbose_name = u"Imagen de categoría"
+        verbose_name_plural = u"Imágenes de categoría"
 
 class RuleBasedDiscount(models.Model):
 
@@ -386,6 +390,9 @@ class Address(models.Model):
     def full_address(self):
         return u"Dirección: %s, %s. Teléfono: %s. Celular: %s. Destinatario: %s "%(self.street_address_1, self.city, self.phone, self.mobile, self.first_name + " " + self.last_name)
 
+    class Meta:
+        verbose_name = u"Dirección"
+        verbose_name_plural = u"Direcciones"
 
 class UserManager(BaseUserManager):
 
@@ -503,6 +510,11 @@ class Order(models.Model):
         return self.shipping_address.full_address()
     full_address.short_description = "Datos de envio"
 
+    class Meta:
+        verbose_name = u"Órden"
+        verbose_name_plural = u"Órdenes"
+
+
 class ProductOrder(models.Model):
     order = models.ForeignKey(Order, related_name='products')
     product = models.ForeignKey(Product, null=True, blank=True)
@@ -515,6 +527,10 @@ class ProductOrder(models.Model):
     def __unicode__(self):
         return "%s. Cantidad: %s, Precio Unitario: %s"%(self.product_name, self.quantity, self.price - self.discount_price)
 
+    class Meta:
+        verbose_name = u"Producto de órden"
+        verbose_name_plural = u"Productos de órden"
+
 
 class Payment(models.Model):
     STATUS_CHOICES = [ (Order.PAYMENT_PENDING, 'Pendiente de pago'),
@@ -523,3 +539,7 @@ class Payment(models.Model):
     method = models.CharField(u"Método de pago", max_length=30, choices=settings.PAYMENT_METHOD_CHOICES)
     payment_ref = models.CharField(u"Referencia de pago", max_length=50)
     status = models.CharField(u"Estado", choices=STATUS_CHOICES, max_length=30, default=Order.PAYMENT_PENDING)
+
+    class Meta:
+        verbose_name = u"Pago"
+        verbose_name_plural = u"Pagos"
