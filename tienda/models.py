@@ -96,6 +96,7 @@ class Product(models.Model):
     price = models.DecimalField(u'Precio', max_digits=12, decimal_places=2)
     uid = models.CharField(u'Referencia', max_length=32, unique=True)
     categories = models.ManyToManyField(Category, related_name='products')
+    tax = models.DecimalField(u"Impuesto", max_digits=3, decimal_places=1, default=0)
     attributes = models.ManyToManyField('ProductAttribute', related_name='products', blank=True)
     updated_at = models.DateTimeField('updated at', auto_now=True, null=True)
     enabled = models.BooleanField(u'Habilitado', default=True)
