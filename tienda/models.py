@@ -361,7 +361,8 @@ class CatalogDiscountRule(models.Model):
 
         elif self.rtype == 2:
             # Producto
-            return len(self.product.filter(pk=product.pk)) > 0
+            return product in self.product.all()
+            #return len(self.product.filter(pk=product.pk)) > 0
         return False
 
     def __unicode__(self):

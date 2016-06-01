@@ -33,6 +33,17 @@ class CatalogView(ListView):
                 queryset = Product.objects.filter(enabled=True) # TODO que productoss obtener por defecto?
         else:
             queryset = Product.objects.get_products_from_cat(self.category)
+
+        if 'discounts_only' in self.request.GET:
+            dqset = Product.objects.none() 
+            for discount in self.request.discounts:
+                qset = discount.get_products_queryset()
+                dqset |= qset
+            # Method 1 id IN (Subquery)
+            discounted_products = dqset.distinct().values_list('pk', flat=True)
+            queryset = queryset.filter(pk__in=discounted_products)
+
+
         ordering = self.get_ordering()
         if ordering:
             queryset = queryset.order_by(ordering)
