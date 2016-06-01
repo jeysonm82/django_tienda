@@ -448,6 +448,7 @@ class OrderManager(models.Manager):
             p_order.product_uid = p.uid
             p_order.quantity = q
             p_order.price = p.price
+            p_order.tax = p.tax
 
             p_order.discount_price = 0
             try:
@@ -525,6 +526,7 @@ class ProductOrder(models.Model):
     quantity = models.IntegerField(u"Cantidad")
     price = models.DecimalField(u"Precio",  max_digits=12, decimal_places=2)
     discount_price = models.DecimalField(u"Descuento", default=0,  max_digits=12, decimal_places=2)
+    tax = models.DecimalField(u"Impuesto", default=0,  max_digits=12, decimal_places=2)
 
     def __unicode__(self):
         return "%s. Cantidad: %s, Precio Unitario: %s"%(self.product_name, self.quantity, self.price - self.discount_price)

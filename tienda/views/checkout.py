@@ -42,8 +42,8 @@ class Checkout(object):
         entries = []
         for p, q in self.cart.storage.iteritems():
             entries.append(CartEntry(p.pk, q, p.name, p.price,
-                p.get_first_category(), p.images.first(),
-                 p.calculate_discount(Checkout.request.discounts)))
+                p.get_first_category(), p.get_first_image(),
+                 p.calculate_discount(Checkout.request.discounts), p.tax))
         return entries
     
     @property
