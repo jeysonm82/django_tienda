@@ -26,7 +26,7 @@ class ProductAdmin(admin.ModelAdmin):
     form = ProductForm
     fieldsets = (
         (None, {
-            'fields': ('name', 'uid', 'description','price'),
+            'fields': ('name', 'uid', 'description','price','tax'),
         }),
         ("Categoria" +'', {'fields': ('categories',)}),
 
