@@ -4,6 +4,7 @@ from tienda.models import Order, ProductOrder,Address, Payment
 
 class ProductOrderInline(admin.TabularInline):
     model = ProductOrder
+    fields = ['product_name','product_uid', 'quantity', 'price', 'discount_price', 'tax']
 
 class PaymentInline(admin.StackedInline):
     model = Payment
