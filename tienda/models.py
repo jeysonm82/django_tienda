@@ -546,6 +546,7 @@ class Payment(models.Model):
     order = models.ForeignKey(Order, related_name='payments')
     method = models.CharField(u"Método de pago", max_length=30, choices=settings.PAYMENT_METHOD_CHOICES)
     payment_ref = models.CharField(u"Referencia de pago", max_length=50)
+    total = models.DecimalField(u"Valor",default=0,  max_digits=12, decimal_places=2)
     status = models.CharField(u"Estado", choices=STATUS_CHOICES, max_length=30, default=Order.PAYMENT_PENDING)
 
     class Meta:

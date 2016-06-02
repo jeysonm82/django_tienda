@@ -15,7 +15,7 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [ProductOrderInline, PaymentInline]
     search_fields = ['token']
     list_display = ('ref','created','num_products', 'status', 'shipping_address', 'extra')
-    readonly_fields = ['discounts', 'extra', 'user']
+    readonly_fields = ['discounts', 'extra']
     exclude=['shipping_method','total']
 
     def num_products(self, obj):

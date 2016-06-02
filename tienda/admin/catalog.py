@@ -37,11 +37,11 @@ class CatalogDiscountRuleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CatalogDiscountRuleForm, self).__init__(*args, **kwargs)
-        if self.instance.pk:
-            if 'data' in kwargs:
-                # We're posting
-                self.fields['product'].queryset = Product.objects.all_noprefetch()
-            else:
+        if 'data' in kwargs:
+            # We're posting
+            self.fields['product'].queryset = Product.objects.all_noprefetch()
+        else:
+            if self.instance.pk:
                 self.fields['product'].queryset = self.instance.product.all_noprefetch() #Product.objects.all_noprefetch()
                     
         pass
