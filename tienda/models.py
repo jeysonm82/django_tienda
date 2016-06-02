@@ -495,7 +495,7 @@ class Order(models.Model):
     user = models.ForeignKey(StoreUser, null=True, blank=True)
     token = models.CharField(u"Token", max_length=36, unique=True, editable=False)
     shipping_method = models.CharField(u"Método de envío", max_length=30)
-    shipping_address = models.ForeignKey(Address, null=True, editable=False)
+    shipping_address = models.ForeignKey(Address, null=True, editable=False, verbose_name=u'Dirección de envío')
     shipping_price = models.DecimalField(u"Valor domicilio",  max_digits=12, decimal_places=2)
     total = models.DecimalField(u"Total",  max_digits=12, decimal_places=2)
     discounts = models.CharField(u"Descuentos aplicados", max_length=100, blank=True, null=True)
@@ -504,6 +504,9 @@ class Order(models.Model):
     objects = OrderManager()
 
     def __unicode__(self):
+        return "PED-%s"%(self.token[:8].upper())
+
+    def ref(self):
         return "PED-%s"%(self.token[:8].upper())
 
     def recalculate_order(self):
@@ -516,6 +519,7 @@ class Order(models.Model):
     class Meta:
         verbose_name = u"Órden"
         verbose_name_plural = u"Órdenes"
+        ordering = ['-status', '-pk']
 
 
 class ProductOrder(models.Model):

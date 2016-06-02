@@ -13,7 +13,12 @@ class PaymentInline(admin.StackedInline):
 class OrderAdmin(admin.ModelAdmin):
     model = Order
     inlines = [ProductOrderInline, PaymentInline]
-    readonly_fields = ['total', 'user', 'full_address', 'shipping_method', 'extra']
     search_fields = ['token']
+    list_display = ('ref','created','num_products', 'status', 'shipping_address', 'extra')
+    readonly_fields = ['discounts', 'extra', 'user']
+    exclude=['shipping_method','total']
 
-
+    def num_products(self, obj):
+        if obj is not None:
+            return "%s"%(obj.products.count())
+    num_products.short_description = u"# productos"
