@@ -104,7 +104,7 @@ class CartEntryDetailRESTView(CartRESTView):
         product = Product.objects.get(pk=pk)
         entry  = CartEntry(pk, cart.storage[product], product.name,
                    product.price, product.get_first_category(),
-                   product.get_first_image(), product.calculate_discount(request.discounts). product.tax)
+                   product.get_first_image(), product.calculate_discount(request.discounts), product.tax)
         serializer = CartEntrySerializer(entry, data=request.data)
 
         if serializer.is_valid():
