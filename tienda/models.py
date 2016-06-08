@@ -131,7 +131,7 @@ class Product(models.Model):
     def get_price(self, with_discount=False, with_tax=False):
         d = self.discount_value if with_discount else 0
         t = self.tax if with_tax else 0
-        return (self.price - d) * (1 + t/100.)
+        return (float(self.price) - float(d)) * (1 + float(t)/100.)
 
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
