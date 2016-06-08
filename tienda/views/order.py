@@ -53,6 +53,7 @@ class ProductOrderSerializer(serializers.ModelSerializer):
     discount = serializers.SerializerMethodField("_discount") #renaming discount_price to discount
     image = serializers.SerializerMethodField("_product_image")
     name = serializers.SerializerMethodField("_product_name")
+    product_pk = serializers.SerializerMethodField("_product_pk")
 
     def _discount(self, obj):
         return float(obj.discount_price)
@@ -65,9 +66,12 @@ class ProductOrderSerializer(serializers.ModelSerializer):
     def _product_name(self, obj):
         return obj.product_name
 
+    def _product_pk(self, obj):
+        return obj.product.pk
+
     class Meta:
         model = ProductOrder
-        fields = ('id', 'name', 'quantity', 'price', 'discount', 'tax', 'discount_price', 'image')
+        fields = ('id', 'product_pk', 'name', 'quantity', 'price', 'discount', 'tax', 'discount_price', 'image')
 
 class OrderSerializer(serializers.ModelSerializer):
     products = ProductOrderSerializer(many=True, read_only=True)

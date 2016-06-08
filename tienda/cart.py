@@ -23,6 +23,8 @@ class Cart(object):
         #Cart._cart_instance = self
 
     def add(self, product, quantity):
+        if not product.enabled:
+            return
         if quantity == 0:
             self.remove(product)
             return
@@ -39,6 +41,9 @@ class Cart(object):
                 self.session_storage[u"%s"%(product.pk)] = quantity
 
     def update(self, product, quantity):
+        if not product.enabled:
+            return
+
         if quantity == 0:
             self.remove(product)
             return

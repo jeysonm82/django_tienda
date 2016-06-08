@@ -6,6 +6,7 @@ from tienda.cart import Cart
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
+import json
 
 #CartEntry = namedtuple('CartEntry', ['product_pk', 'quantity'])
 
@@ -40,6 +41,7 @@ class CartEntrySerializer(serializers.Serializer):
     request = None
 
     def create(self, validated_data):
+        print "CREATING", validated_data
         try:
             prod = Product.objects.get(pk=validated_data.get('product_pk'))
             qty = validated_data.get('quantity')
@@ -101,7 +103,7 @@ class CartEntryDetailRESTView(CartRESTView):
         cart = Cart(request.cart)
         CartEntrySerializer.cart = cart
 
-        product = Product.objects.get(pk=pk)
+        product = Product.objects.get(pk=pk, enabled=True)
         entry  = CartEntry(pk, cart.storage[product], product.name,
                    product.price, product.get_first_category(),
                    product.get_first_image(), product.calculate_discount(request.discounts), product.tax)
@@ -128,8 +130,18 @@ class CartEntryListRESTView(CartRESTView):
         CartEntrySerializer.cart = cart
         CartEntrySerializer.request = request
 
-        serializer = CartEntrySerializer(data=request.data)
+        data = request.data
+        if 'many' in request.data:
+            json_str = ','.join([x for x in request.data.getlist('many')])
+            json_str = "[%s]"%(json_str)
+            data = json.loads(json_str)
+            print "DATA loaded", data
+
+            
+        print "DATA", data, True if 'many' in request.data else False
+        serializer = CartEntrySerializer(data=data, many=True if 'many' in request.data else False)
         if serializer.is_valid():
             serializer.save()
             return Response(self._get_entire_cart(request, cart).data, status=status.HTTP_201_CREATED)
+        print "ERRORES"
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
