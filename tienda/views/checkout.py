@@ -27,6 +27,7 @@ class Checkout(object):
         checkout_storage = self.checkout_storage
         checkout_storage[u'cart'] = cart.session_storage #TODO shallow copy?
         checkout_storage[u'address'] = None
+        checkout_storage[u'obs'] = None
         checkout_storage[u'city'] = None
         checkout_storage[u'shipping_method'] = None
         checkout_storage[u'shipping_price'] = None
@@ -62,6 +63,13 @@ class Checkout(object):
     def shipping_address_city(self, address):
         self.checkout_storage[u'city'] = address
 
+    @property
+    def obs(self):
+        return self.checkout_storage[u'obs']
+
+    @obs.setter
+    def obs(self, obs):
+        self.checkout_storage[u'obs'] = obs
 
     @property
     def shipping_method(self):
@@ -123,11 +131,11 @@ class Checkout(object):
         shipping_address.title = "-"
         shipping_address.city_area = "-"
         shipping_address.save()
-
+        obs = self.obs
         
         discounts = self.request.discounts if self.request else None
 
-        order = Order.objects.create_order(self.user, shipping_address, shipm, paym, cart_entries, discounts)
+        order = Order.objects.create_order(self.user, shipping_address, shipm, paym, cart_entries, obs, discounts)
         print "Order created: ", order
         return order
 
@@ -140,6 +148,7 @@ class CheckoutSerializer(serializers.Serializer):
     shipping_method = serializers.CharField(allow_null=True)
     shipping_price = serializers.IntegerField(read_only=True)
     payment_method = serializers.CharField(allow_null=True)
+    obs = serializers.CharField(allow_null=True)
     cart_entries = CartEntrySerializer(many=True, read_only=True)
 
     def create(self, validated_data):
@@ -157,6 +166,10 @@ class CheckoutSerializer(serializers.Serializer):
 
         if 'shipping_method' in self.validated_data:
             instance.shipping_method = self.validated_data.get('shipping_method')
+
+        if 'obs' in self.validated_data:
+            instance.obs = self.validated_data.get('obs')
+
         return instance
 
 

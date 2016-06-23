@@ -423,7 +423,7 @@ class StoreUser(User):
 
 class OrderManager(models.Manager):
 
-    def create_order(self,user, shipping_address, shipping_method, payment_method, cart_storage, discounts=None):
+    def create_order(self,user, shipping_address, shipping_method, payment_method, cart_storage, obs, discounts=None):
         """
         shipping_method: ShippingMethod instance (with address)
         payment_method: PaymentMethod instance 
@@ -434,7 +434,7 @@ class OrderManager(models.Manager):
         order.shipping_method = shipping_method.ref
         order.shipping_address = shipping_address
         order.shipping_price = shipping_method.calculate()
-
+        order.obs = obs
         payment = Payment()
         payment.method = payment_method.ref
         payment.payment_ref = payment_method.payment_ref
@@ -506,10 +506,10 @@ class Order(models.Model):
     objects = OrderManager()
 
     def __unicode__(self):
-        return "PED-%s"%(self.token[:8].upper())
+        return "PED-%.5d"%(self.pk)
 
     def ref(self):
-        return "PED-%s"%(self.token[:8].upper())
+        return "PED-%.5d"%(self.pk)
 
     def recalculate_order(self):
         pass
