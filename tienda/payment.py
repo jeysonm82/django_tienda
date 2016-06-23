@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 class PaymentMethod(object):
     name = None
     ref = None
@@ -8,7 +10,7 @@ class PaymentMethod(object):
 
 
 class PaymentMethodRegister(object):
-    _reg = {}
+    _reg = OrderedDict({})
 
     @classmethod
     def register(cls, payment):
