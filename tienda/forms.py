@@ -32,6 +32,8 @@ class RegisterForm(forms.Form):
     mobile = forms.IntegerField(label='Celular')
     password = forms.CharField(max_length=200, label='Contraseña', widget=forms.PasswordInput())
     repeat_password = forms.CharField(max_length=200, label='Repetir Contraseña', widget=forms.PasswordInput())
+    genre = forms.ChoiceField(label='Genero', choices=(("masculino", "Masculino"), ("femenino", "Femenino")))
+    born_date = forms.DateField(label='Fecha de nacimiento')
 
     def clean(self): #llamado por is_valid
         cleaned_data = super(RegisterForm, self).clean()

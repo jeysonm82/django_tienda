@@ -10,7 +10,7 @@ from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework import generics
-
+from django.db.models import Q
 
 class CatalogView(ListView):
     template_name = 'more/catalog/catalog.html'
@@ -72,5 +72,5 @@ class AdminProductListRESTView(generics.ListAPIView):
     def get_queryset(self):
         qset = super(AdminProductListRESTView, self).get_queryset()
         if "name" in self.request.GET:
-            qset = qset.filter(name__contains=self.request.GET.get("name"))
+            qset = qset.filter(Q(name__contains=self.request.GET.get("name")) | Q(uid__contains=self.request.GET.get("name")))
         return qset

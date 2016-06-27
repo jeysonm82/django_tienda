@@ -414,6 +414,8 @@ class StoreUser(User):
     addresses = models.ManyToManyField(Address, blank=True)
     default_shipping_address = models.ForeignKey(Address,related_name='+',
             verbose_name="Default shipping address", null=True, blank=True, on_delete=models.SET_NULL)
+    born_date = models.DateField(u"Fecha de nacimiento", null=True)
+    genre = models.CharField(u"Género", choices=(("masculino", "Masculino"), ("femenino", "Femenino")), default="masculino", max_length=50)
     objects = UserManager()
 
     def default_address(self):
