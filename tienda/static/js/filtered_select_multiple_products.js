@@ -78,7 +78,7 @@ function getCookie(name) {
                                     jq(select_ele).html("");
                                     for (var i=0;i<data.length;i++){
                                         if (!SelectBox.cache_contains(SelectBox.field_id, data[i].id)){
-                                            jq(select_ele).append("<option value='"+data[i].id+"'>"+data[i].name+"</option>");}
+                                            jq(select_ele).append("<option value='"+data[i].id+"'>"+data[i].name+' ('+data[i].uid+')'+"</option>");}
                                     }
                                     SelectBox.repopulate_cache(id);
                                 

@@ -18,15 +18,21 @@ class LoginForm(AuthenticationForm):
                 self.fields['username'].initial = email
 
 
-class RegisterForm(forms.Form):
+TIPOS_CALLES_CHOICES = [('Calle', 'Calle'), ('Carrera', 'Carrera'), ('Avenida', 'Avenida')]
+CIUDADES_CHOICES = [('Bello', 'Bello'), ('Medellin', 'Medellin')]
 
+class RegisterForm(forms.Form):
     name = forms.CharField(max_length=200, label='Nombre')
     last_name = forms.CharField(max_length=200, label='Apellido')
     gov_id = forms.IntegerField(label='Gov id')
     email = forms.EmailField(max_length=200, label='Email')
     repeat_email = forms.EmailField(max_length=200, label='Verificar Email')
-    city = forms.CharField(max_length=200, label='Ciudad')
-    street_address_1 = forms.CharField(max_length=200, label='Direccion')
+    city = forms.ChoiceField(choices=CIUDADES_CHOICES, label='Ciudad')
+    #street_address_1 = forms.CharField(max_length=200, label='Direccion')
+    street_address_1_p1 = forms.ChoiceField(choices=TIPOS_CALLES_CHOICES, label='Direccion p1')
+    street_address_1_p2 = forms.CharField(max_length=30, label='Direccion p2' )
+    street_address_1_p3 = forms.CharField(max_length=30, label='Direccion p3')
+    street_address_1_p4 = forms.CharField(max_length=30, label='Direccion p4')
     city_area = forms.CharField(max_length=200, label='Barrio')
     phone = forms.IntegerField(label='Telefono')
     mobile = forms.IntegerField(label='Celular')
@@ -91,5 +97,5 @@ class UpdateUserForm(RegisterForm):
 
 UpdateUserForm.base_fields = OrderedDict(
     (k, UpdateUserForm.base_fields[k])
-    for k in ['name', 'last_name', 'email', 'repeat_email', 'gov_id', 'city', 'street_address_1','city_area', 'phone', 'mobile', 'security_password', 'password', 'repeat_password']
+    for k in ['name', 'last_name', 'email', 'repeat_email', 'gov_id', 'city', 'street_address_1_p1', 'street_address_1_p2', 'street_address_1_p3', 'street_address_1_p4','city_area', 'phone', 'mobile', 'security_password', 'password', 'repeat_password']
 )

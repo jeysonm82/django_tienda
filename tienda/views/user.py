@@ -125,7 +125,15 @@ class ChangePersonalDataView(FormView):
         base_address = user.addresses.all()[0]
         form.fields['city'].initial = base_address.city
         form.fields['city_area'].initial = base_address.city_area
-        form.fields['street_address_1'].initial = base_address.street_address_1
+        
+        addrs = base_address.street_address_1
+        addrs = addrs.split(',')
+
+        form.fields['street_address_1_p1'].initial = addrs[0]
+        form.fields['street_address_1_p2'].initial = addrs[1]
+        form.fields['street_address_1_p3'].initial = addrs[2]
+        form.fields['street_address_1_p4'].initial = addrs[3]
+
         form.fields['phone'].initial = base_address.phone
         form.fields['mobile'].initial = base_address.mobile
         return form
@@ -152,7 +160,10 @@ class ChangePersonalDataView(FormView):
 
         base_address.city = data['city']
         base_address.city_area = data['city_area']
-        base_address.street_address_1 = data['street_address_1']
+        #base_address.street_address_1 = data['street_address_1']
+        
+        base_address.street_address_1 = ','.join([data['street_address_1_p1'], data['street_address_1_p2'], data['street_address_1_p3'], data['street_address_1_p4']])
+
         base_address.phone = data['phone']
         base_address.mobile = data['mobile']
 

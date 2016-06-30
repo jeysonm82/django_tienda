@@ -61,7 +61,7 @@ class CatalogView(ListView):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ('id', 'name')
+        fields = ('id', 'name','uid')
 
 class AdminProductListRESTView(generics.ListAPIView):
     """Used for catalogdiscount admin to filter list of products"""
