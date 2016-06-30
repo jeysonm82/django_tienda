@@ -72,5 +72,15 @@ class AdminProductListRESTView(generics.ListAPIView):
     def get_queryset(self):
         qset = super(AdminProductListRESTView, self).get_queryset()
         if "name" in self.request.GET:
-            qset = qset.filter(Q(name__contains=self.request.GET.get("name")) | Q(uid__contains=self.request.GET.get("name")))
+            q_queries = None
+            for i, s in enumerate(self.request.GET.get('name').split(',')):
+                s = s.strip()
+                if not len(s):
+                    continue
+                if q_queries is None:
+                    q_queries = Q(name__contains=s) | Q(uid__contains=s)
+                else:
+                    q_queries = q_queries | Q(name__contains=s) | Q(uid__contains=s)
+            qset = qset.filter(q_queries)[:250]
+
         return qset
