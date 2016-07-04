@@ -18,6 +18,8 @@ class RegisterUserView(FormView):
         #Registrarlo
         data = form.cleaned_data
         self.create_user(form.cleaned_data)
+        #Enviar correo para validar correo
+
         self.preserve_sessiondata()
         #Autenticarlo
         user = authenticate(username=data['email'], password=data['password'])

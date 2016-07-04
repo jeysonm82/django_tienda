@@ -406,6 +406,7 @@ class UserManager(BaseUserManager):
                           is_staff=False, **extra_fields)
         if password:
             user.set_password(password)
+        user.token ="%s"%(uuid4())
         user.save()
         return user
 
@@ -416,6 +417,8 @@ class StoreUser(User):
             verbose_name="Default shipping address", null=True, blank=True, on_delete=models.SET_NULL)
     born_date = models.DateField(u"Fecha de nacimiento", null=True)
     genre = models.CharField(u"Género", choices=(("masculino", "Masculino"), ("femenino", "Femenino")), default="masculino", max_length=50)
+    confirm_email = models.BooleanField(default=False)
+    token = models.CharField(max_length=36, default='')
     objects = UserManager()
 
     def default_address(self):

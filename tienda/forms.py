@@ -18,8 +18,13 @@ class LoginForm(AuthenticationForm):
                 self.fields['username'].initial = email
 
 
-TIPOS_CALLES_CHOICES = [('Calle', 'Calle'), ('Carrera', 'Carrera'), ('Avenida', 'Avenida')]
-CIUDADES_CHOICES = [('Bello', 'Bello'), ('Medellin', 'Medellin')]
+TIPOS_CALLES_CHOICES = [('Calle', 'Calle'), ('Carrera', 'Carrera'), ('Avenida', 'Avenida'),
+        ('Diagonal', 'Diagonal'), ('Transversal','Transversal'), ('Circular', 'Circular')
+        ]
+CIUDADES_CHOICES = [('Medellin', 'Medellin'), ('Bello', 'Bello'),('Envigado', 'Envigado'),
+        (u'Itagüí',u'Itagüí'), ('Sabaneta', 'Sabaneta'), ('La Estrella', 'La Estrella'),
+        ('Copacabana', 'Copacabana')
+        ]
 
 class RegisterForm(forms.Form):
     name = forms.CharField(max_length=200, label='Nombre')
