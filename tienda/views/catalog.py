@@ -57,8 +57,17 @@ class CatalogView(ListView):
         context['category_list'] = category_list
         return context
 
-
 class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'uid', 'description', 'images')
+
+class CatalogRESTView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all_noprefetch()
+    permission_classes = [permissions.IsAuthenticated]
+ 
+class AdminProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name','uid')
@@ -67,7 +76,7 @@ class AdminProductListRESTView(generics.ListAPIView):
     """Used for catalogdiscount admin to filter list of products"""
     queryset = Product.objects.all_noprefetch()
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = ProductSerializer
+    serializer_class = AdminProductSerializer
 
     def get_queryset(self):
         qset = super(AdminProductListRESTView, self).get_queryset()
