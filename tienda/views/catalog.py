@@ -1,6 +1,6 @@
 from django.views.generic import TemplateView, ListView
 from django.http import HttpResponse
-from tienda.models import Category, Product, ProductManager
+from tienda.models import Category, Product, ProductManager, ProductImage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
 from django.conf import settings
@@ -57,16 +57,35 @@ class CatalogView(ListView):
         context['category_list'] = category_list
         return context
 
-class ProductSerializer(serializers.ModelSerializer):
+
+
+
+class CatalogProductSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField('_image', read_only=True)
+    def _image(self, obj):
+        try:
+            return obj.images.first().image.thumbnail['400x300'].url
+        except:
+            return ''
+
     class Meta:
         model = Product
-        fields = ('id', 'name', 'uid', 'description', 'images')
+        fields = ('id','name', 'uid', 'image')
+
 
 class CatalogRESTView(generics.ListAPIView):
-    serializer_class = ProductSerializer
+    serializer_class = CatalogProductSerializer
     queryset = Product.objects.all_noprefetch()
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super(CatalogRESTView, self).get_queryset()
+        if 'pk' in self.kwargs:
+            cat = Category.objects.get(pk=self.kwargs['pk'])
+            queryset = Product.objects.get_products_from_cat(cat)
+        return queryset
  
+
 class AdminProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product

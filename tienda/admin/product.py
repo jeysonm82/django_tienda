@@ -8,7 +8,7 @@ class ProductImagesInline(admin.TabularInline):
     """ Inline for Product's images """
     model = ProductImage
     extra = 1
-    max_num = 1
+    max_num = 10
     verbose_name = "Imágenes de producto"
 
 class ProductForm(forms.ModelForm):

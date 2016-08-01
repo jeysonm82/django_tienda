@@ -183,6 +183,11 @@ class ProductImage(models.Model):
     ppoi = PPOIField()
     alt = models.CharField('short description', max_length=128, blank=True)
 
+    def image_url(self, thumbnail=None):
+        if thumbnail is None:
+            return self.image.url
+        return self.image.thumbnail[thumbnail].url
+
     class Meta:
         verbose_name = 'Imagen de producto'
         verbose_name_plural = 'Imágenes de producto'

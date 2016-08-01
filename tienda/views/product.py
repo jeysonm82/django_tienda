@@ -1,12 +1,17 @@
 from django.views.generic import DetailView
 from django.views.generic.edit import FormMixin
 from django.http import HttpResponse
-from tienda.models import Product, Category
+from tienda.models import Product, Category, ProductImage
 from tienda.cart import Cart
 from django import forms
 import json
 from django.contrib import messages
-
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework import permissions
+from rest_framework.views import APIView
+from rest_framework import serializers
+from rest_framework import generics
 
 
 class ProductDetail(DetailView):
@@ -40,3 +45,18 @@ class ProductDetail(DetailView):
         context['category_list'] = Category.objects.all()
         context['form'] = self.get_form()
         return context
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ('id', 'image_url')
+
+class ProductSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(many=True)
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'uid', 'description', 'images')
+
+class ProductDetailRESTView(generics.RetrieveAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
