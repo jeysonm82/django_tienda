@@ -58,10 +58,15 @@ class CatalogView(ListView):
         return context
 
 
-
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('id', 'slug', 'name')
 
 class CatalogProductSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField('_image', read_only=True)
+    categories = CategorySerializer(many=True)
+
     def _image(self, obj):
         try:
             return obj.images.first().image.thumbnail['400x300'].url
@@ -70,7 +75,7 @@ class CatalogProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id','name', 'uid', 'image')
+        fields = ('id','name', 'uid', 'image', 'get_slug', 'categories')
 
 
 class CatalogRESTView(generics.ListAPIView):

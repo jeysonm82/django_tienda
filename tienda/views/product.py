@@ -51,8 +51,10 @@ class ProductImageSerializer(serializers.ModelSerializer):
         model = ProductImage
         fields = ('id', 'image_url')
 
+
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True)
+
     class Meta:
         model = Product
         fields = ('id', 'name', 'uid', 'description', 'images')
