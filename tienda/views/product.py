@@ -69,3 +69,4 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductDetailRESTView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]

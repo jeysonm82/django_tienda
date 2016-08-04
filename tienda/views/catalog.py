@@ -81,7 +81,7 @@ class CatalogProductSerializer(serializers.ModelSerializer):
 class CatalogRESTView(generics.ListAPIView):
     serializer_class = CatalogProductSerializer
     queryset = Product.objects.all_noprefetch()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = super(CatalogRESTView, self).get_queryset()
