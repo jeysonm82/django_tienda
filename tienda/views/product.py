@@ -12,6 +12,8 @@ from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework import generics
+from versatileimagefield.serializers import VersatileImageFieldSerializer
+
 
 
 class ProductDetail(DetailView):
@@ -47,9 +49,14 @@ class ProductDetail(DetailView):
         return context
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    image = VersatileImageFieldSerializer(sizes=[
+            ('full_size', 'url'),
+            ('thumbnail', 'thumbnail__200x100'),
+        ])    
+
     class Meta:
         model = ProductImage
-        fields = ('id', 'image_url')
+        fields = ('id', 'image')
 
 
 class ProductSerializer(serializers.ModelSerializer):

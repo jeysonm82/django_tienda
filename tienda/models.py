@@ -18,6 +18,7 @@ from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.utils.timezone import now
 from uuid import uuid4
 from django.conf import settings
+from ckeditor.fields import RichTextField
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -34,6 +35,11 @@ class Category(MPTTModel):
 
     def __str__(self):
         return self.name
+
+    def get_first_image(self):
+        qset = self.images.all()
+        if qset:
+            return qset[0]
 
     class Meta:
         verbose_name = u'categoría'
@@ -92,7 +98,7 @@ class ProductSearchManager(models.Manager):
 
 class Product(models.Model):
     name = models.CharField('Nombre', max_length=128)
-    description = models.TextField(u'Descripción', blank=True, default='')
+    description = RichTextField(u'Descripción', blank=True, default='')
     price = models.DecimalField(u'Precio', max_digits=12, decimal_places=2)
     uid = models.CharField(u'Referencia', max_length=32, unique=True)
     categories = models.ManyToManyField(Category, related_name='products')
