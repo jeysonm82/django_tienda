@@ -1,0 +1,9 @@
+Django==1.9.5
+django-ckeditor==5.1.1
+django-haystack==2.5.0
+django-mptt==0.8.6
+django-versatileimagefield==1.6
+djangorestframework==3.4.7
+Pillow==3.3.1
+Unidecode==0.4.19
+Whoosh==2.7.4
