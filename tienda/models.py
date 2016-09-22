@@ -7,7 +7,6 @@ from mptt.models import MPTTModel
 from mptt.managers import TreeManager
 from django.db.models import Manager
 from django.conf import settings
-from django_prices.models import PriceField
 from versatileimagefield.fields import VersatileImageField, PPOIField
 from unidecode import unidecode
 from django.utils.text import slugify
