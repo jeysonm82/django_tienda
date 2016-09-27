@@ -105,6 +105,7 @@ class Product(models.Model):
     attributes = models.ManyToManyField('ProductAttribute', related_name='products', blank=True)
     updated_at = models.DateTimeField('updated at', auto_now=True, null=True)
     enabled = models.BooleanField(u'Habilitado', default=True)
+    order = models.SmallIntegerField(u'Orden', default=0)
     discount = None
     discount_value = 0
     objects = ProductManager()
