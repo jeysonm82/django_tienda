@@ -69,7 +69,7 @@ class CatalogProductSerializer(serializers.ModelSerializer):
 
     def _image(self, obj):
         try:
-            return obj.images.first().image.thumbnail['400x300'].url
+            return obj.images.first().image.crop['350x350'].url
         except:
             return ''
 
