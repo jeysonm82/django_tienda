@@ -170,6 +170,7 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
+        ordering = ['order', '-pk']
 
 class ProductVariant(models.Model):
     name = models.CharField('name', max_length=128)
