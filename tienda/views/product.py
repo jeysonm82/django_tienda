@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework import generics
 from versatileimagefield.serializers import VersatileImageFieldSerializer
-
+from django.conf import settings
 
 
 class ProductDetail(DetailView):
@@ -49,10 +49,7 @@ class ProductDetail(DetailView):
         return context
 
 class ProductImageSerializer(serializers.ModelSerializer):
-    image = VersatileImageFieldSerializer(sizes=[
-            ('full_size', 'url'),
-            ('thumbnail', 'thumbnail__200x100'),
-        ])    
+    image = VersatileImageFieldSerializer(sizes= settings.PRODUCT_DETAIL_IMAGES)    
 
     class Meta:
         model = ProductImage
