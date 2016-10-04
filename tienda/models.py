@@ -18,6 +18,7 @@ from django.utils.timezone import now
 from uuid import uuid4
 from django.conf import settings
 from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 
 # Create your models here.
 @python_2_unicode_compatible
@@ -25,7 +26,7 @@ class Category(MPTTModel):
 
     name = models.CharField('name', max_length=128)
     slug = models.SlugField('slug', max_length=50, null=True, blank=True)
-    description = models.TextField('description', blank=True, default='')
+    description = RichTextUploadingField('description', blank=True, default='')
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children',verbose_name='parent')
     visible = models.BooleanField('visible', default=True)
     uid = models.CharField('Ref', max_length=32, unique=True, blank=True, null=True)
