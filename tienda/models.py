@@ -98,7 +98,7 @@ class ProductSearchManager(models.Manager):
 
 class Product(models.Model):
     name = models.CharField('Nombre', max_length=128)
-    description = RichTextField(u'Descripción', blank=True, default='')
+    description = RichTextUploadingField(u'Descripción', blank=True, default='')
     price = models.DecimalField(u'Precio', max_digits=12, decimal_places=2)
     uid = models.CharField(u'Referencia', max_length=32, unique=True)
     categories = models.ManyToManyField(Category, related_name='products')
