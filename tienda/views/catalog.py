@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework import generics
 from django.db.models import Q
+from versatileimagefield.serializers import VersatileImageFieldSerializer
 
 class CatalogView(ListView):
     template_name = 'more/catalog/catalog.html'
@@ -63,8 +64,16 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ('id', 'slug', 'name')
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    image = VersatileImageFieldSerializer(sizes= settings.PRODUCT_LIST_IMAGES)    
+
+    class Meta:
+        model = ProductImage
+        fields = ('id', 'image', 'alt')
+
 class CatalogProductSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField('_image', read_only=True)
+    images = ProductImageSerializer(many=True)
+    #image = serializers.SerializerMethodField('_image', read_only=True)
     categories = CategorySerializer(many=True)
 
     def _image(self, obj):
@@ -75,7 +84,7 @@ class CatalogProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id','name', 'uid', 'image', 'get_slug', 'categories')
+        fields = ('id','name', 'uid', 'images', 'get_slug', 'categories')
 
 
 class CatalogRESTView(generics.ListAPIView):
